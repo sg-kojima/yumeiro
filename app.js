@@ -1251,6 +1251,7 @@ function screenPatisserie() {
         <section class="menu">
           <button class="bigbtn" id="call">🔔 おきゃくさんを よぶ</button>
           <p class="muted center">ケーキ 1こ で <b>50円〜</b>。いっぱい せいかい すると ボーナス!</p>
+          <button class="gamecard juice" id="g-juice"><span class="gc-ic jc-gc">${iconSVG('juice')}</span><span><b>ジュース いれかえ</b><small>おなじ いろを 1ぽんに あつめて のうひん!</small></span></button>
           <div class="cafe">
             <div class="friends">${others.map(id => `<div class="friend sway">${charSVG(id, 'happy')}<small>${nameOf(id)}</small></div>`).join('')}</div>
             <div class="table"><span>☕</span><span>🍰</span><span>🧃</span></div>
@@ -1260,6 +1261,7 @@ function screenPatisserie() {
     </div>`;
   $('#back').onclick = () => screenField();
   $('#call').onclick = () => { sfx('tap'); startOrder(); };
+  $('#g-juice').onclick = () => { sfx('tap'); startJuiceGame(); };
 }
 
 function startOrder() {
@@ -1381,6 +1383,7 @@ function screenShop() {
         ${walletHTML()}
       </header>
       <div class="shop-awning"></div>
+      <div class="shop-games"><button class="gamecard" id="g-parking"><span class="gc-ic cp-gc">${cpCarSVG({ h: true, len: 2, color: '#ff8fb8', me: true })}</span><span><b>ちゅうしゃじょう だっしゅつ</b><small>くるまを うごかして でぐちへ!</small></span></button></div>
       <nav class="tabs">${Object.entries(tabs).map(([k, v]) => `<button class="tab ${k === shopTab ? 'on' : ''}" data-tab="${k}">${v}</button>`).join('')}</nav>
       <div class="goods shop-room">
         ${list.map(it => {
@@ -1398,6 +1401,7 @@ function screenShop() {
       </footer>
     </div>`;
   $('#back').onclick = () => { cart = []; screenField(); };
+  $('#g-parking').onclick = () => { cart = []; sfx('tap'); startParkingGame(); };
   $$('[data-tab]').forEach(b => b.onclick = () => { shopTab = b.dataset.tab; sfx('tap'); screenShop(); });
   $$('.good').forEach(b => b.onclick = () => {
     if (cart.length >= 3) { toast('かごは 3こ までだよ'); return; }
