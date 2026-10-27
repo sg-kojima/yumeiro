@@ -526,6 +526,22 @@ button:disabled { opacity: .5; cursor: default; transform: none; box-shadow: 0 3
 </div>
 
 <script>
+// iPad etc.: in portrait, show the phone layout scaled up to fill the screen (the browser zooms natively, so taps stay exact)
+(function fitTablet() {
+  let m = document.querySelector('meta[name=viewport]');
+  if (!m) { m = document.createElement('meta'); m.name = 'viewport'; document.head.appendChild(m); }
+  const base = 'initial-scale=1, viewport-fit=cover';
+  const apply = () => {
+    const tablet = Math.min(screen.width, screen.height) >= 700;
+    const portrait = matchMedia('(orientation: portrait)').matches;
+    m.content = tablet && portrait ? 'width=500, viewport-fit=cover' : 'width=device-width, ' + base;
+  };
+  apply();
+  addEventListener('orientationchange', () => setTimeout(apply, 50));
+  matchMedia('(orientation: portrait)').addEventListener?.('change', apply);
+})();
+</script>
+<script>
 (function () {
   const FAST = location.hash === '#fast';
   const GROW_MS = FAST ? 15000 : 3 * 60 * 1000;   // いちご：約3分
