@@ -583,14 +583,14 @@ button:disabled { opacity: .5; cursor: default; transform: none; box-shadow: 0 3
   const NAME = { koke: 'コケ', sakura: 'さくら', tonsuke: 'とんすけ', shirousa: 'しろうさ', chausa: 'ちゃうさ' };
   const ROOM_LINES = {
     sakura: ['いらっしゃい！ ゆっくりしていってね', 'おへやの かざりつけ、たのしいね', 'みんなで おちゃかい しようよ'],
-    tonsuke: ['ぶひっ、ぼくの おへやへ ようこそ', 'ベッドで ごろごろ するのが すき', 'いちごクッション ほしいな'],
+    tonsuke: ['ぷぴっ、ぼくの おへやへ ようこそ', 'ベッドで ごろごろ するのが すき', 'いちごクッション ほしいな'],
     shirousa: ['しずかで おちつく おへやでしょ', 'くだものの えを かざりたいな', 'ちゃうさの おうちにも いきたいな'],
     chausa: ['キッチンで おかしを つくりたいな', 'ケーキの においの する おへや！', 'しろうさ、あそびに きてね'],
     koke: ['さくらの おうち、ひろいね！', 'ぴよっ、たのしい！', 'おみせは ちょっと おやすみ〜'],
   };
   const HOME_THANKS = {
     sakura: 'わあ、ひろい おうち！ みんなを よんで おちゃかいが できるね',
-    tonsuke: 'ぶひっ、ぼくの おうちだ！ ありがとう！',
+    tonsuke: 'ぷぴっ、ぼくの おうちだ！ ありがとう！',
     shirousa: 'まどから かじゅえんが みえるかな？ うれしい！',
     chausa: 'キッチンを おいて おかしを つくりたいな！',
   };
@@ -1588,7 +1588,7 @@ button:disabled { opacity: .5; cursor: default; transform: none; box-shadow: 0 3
   function showTonVisit() {
     openModal(`<h2>だれか きたよ！</h2>
       <svg class="portrait" viewBox="-28 -24 56 46" aria-hidden="true">${tonsuke()}</svg>
-      <p class="say">「ぶひっ、ぼく <b>とんすけ</b>！<br>こんなに ひろい はたけ、はじめて みたよ。<br>ぼくも てつだって いい？」</p>
+      <p class="say">「ぷぴっ、ぼく <b>とんすけ</b>！<br>こんなに ひろい はたけ、はじめて みたよ。<br>ぼくも てつだって いい？」</p>
       <button class="primary" type="button" id="welcome2">いっしょに くらそう</button>`);
     $('welcome2').addEventListener('click', () => {
       S.tonsuke = 'friend'; save(); render();
@@ -2169,7 +2169,7 @@ button:disabled { opacity: .5; cursor: default; transform: none; box-shadow: 0 3
     }
     if (target.closest('#tonTap')) {
       petTap(target.closest('#tonTap'));
-      const lines = ['ぶひっ、きょうも いい てんき！', 'はたけしごとは まかせて', 'いちご、ひとつ たべても いい？'];
+      const lines = ['ぷぴっ、きょうも いい てんき！', 'はたけしごとは まかせて', 'いちご、ひとつ たべても いい？'];
       return toast('とんすけ「' + lines[Math.floor(Math.random() * lines.length)] + '」');
     }
     if (target.closest('#kokeTap')) {
