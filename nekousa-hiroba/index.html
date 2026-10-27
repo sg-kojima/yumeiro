@@ -225,6 +225,26 @@ button:disabled { opacity: .5; cursor: default; transform: none; box-shadow: 0 3
 .modal .note { font-size: .85rem; color: var(--ink-soft); }
 .chip[hidden] { display: none; }
 .foot { text-align: center; font-size: .78rem; color: var(--ink-soft); }
+/* iPad などの よこ向き: 左に ひろい 箱庭、右に メニューの はしら */
+@media (orientation: landscape) and (min-width: 900px) and (min-height: 560px) {
+  body { padding-block: 12px; }
+  .app {
+    max-width: none; height: calc(100dvh - 24px); gap: 8px 14px;
+    display: grid; grid-template-columns: minmax(0, 1fr) 260px;
+    grid-template-rows: auto auto auto auto minmax(0, 1fr) auto;
+  }
+  .app > .scene-wrap { grid-column: 1; grid-row: 1 / -1; min-height: 0; }
+  .app > :not(.scene-wrap) { grid-column: 2; }
+  header { flex-direction: column; align-items: flex-start; gap: 6px; }
+  h1 { font-size: 1.32rem; }
+  .scroller { height: 100%; }
+  #scene { width: auto; height: 100%; aspect-ratio: 1800 / 640; }
+  .mapnav { margin-top: 0; justify-content: flex-start; }
+  .hint { min-height: 0; text-align: left; font-size: .9rem; }
+  .actions { position: static; grid-template-columns: repeat(3, 1fr); gap: 6px; padding: 0; margin: 0; box-shadow: none; background: none; }
+  .actions button { font-size: .72rem; padding: 8px 0 6px; }
+  .orders { overflow-y: auto; min-height: 0; }
+}
 .foot button { font-size: .78rem; padding: 4px 10px; border-width: 1.5px; box-shadow: none; background: transparent; border-radius: 10px; }
 
 @keyframes bob { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-3px); } }
@@ -540,6 +560,10 @@ button:disabled { opacity: .5; cursor: default; transform: none; box-shadow: 0 3
   addEventListener('orientationchange', () => setTimeout(apply, 50));
   matchMedia('(orientation: portrait)').addEventListener?.('change', apply);
 })();
+</script>
+<script>
+function screenW() { const sc = document.getElementById('scroller'); return sc.scrollWidth / 5; }
+function goScreen(i) { const sc = document.getElementById('scroller'), sw = screenW(); sc.scrollLeft = i * sw - (sc.clientWidth - sw) / 2; }
 </script>
 <script>
 (function () {
@@ -1760,7 +1784,7 @@ button:disabled { opacity: .5; cursor: default; transform: none; box-shadow: 0 3
       S.decos = []; S.decoInv.__rev = (S.decoInv.__rev || 0) + 1; playWho = null; playIdx = -1;
       save(); render(); showDecoShop(); toast('かざりを ぜんぶ しまったよ。「おく」で すきな ばしょへ');
     });
-    $('modal').querySelectorAll('[data-where]').forEach(b => b.addEventListener('click', () => { closeModal(); $('scroller').scrollLeft = +b.dataset.where * $('scroller').clientWidth; }));
+    $('modal').querySelectorAll('[data-where]').forEach(b => b.addEventListener('click', () => { closeModal(); goScreen(+b.dataset.where); }));
     $('modal').querySelectorAll('[data-buy]').forEach(b => b.addEventListener('click', () => {
       const d = DECOS.find(x => x.k === b.dataset.buy);
       if (S.coins < d.price) return;
@@ -2229,16 +2253,18 @@ button:disabled { opacity: .5; cursor: default; transform: none; box-shadow: 0 3
     $('orders').scrollIntoView({ behavior: 'smooth', block: 'center' });
   });
   const sc = $('scroller');
+  window.addEventListener('resize', () => requestAnimationFrame(panState));
   const panState = () => {
+    const sw = screenW();
     const atEnd = sc.scrollLeft > sc.scrollWidth - sc.clientWidth - 8;
     $('panL').hidden = sc.scrollLeft < 8; $('panR').hidden = atEnd;
-    const cur = Math.round(sc.scrollLeft / sc.clientWidth);
+    const cur = sc.scrollLeft < 8 ? 0 : atEnd ? 4 : Math.min(4, Math.round((sc.scrollLeft + (sc.clientWidth - sw) / 2) / sw));
     document.querySelectorAll('#mapnav [data-go]').forEach(b => b.setAttribute('aria-current', +b.dataset.go === cur));
     $('panR').classList.toggle('nudge', (!S.orchard.owned && S.coins >= LAND_PRICE) || (S.orchard.owned && !S.pond.owned && S.coins >= POND_PRICE));
   };
-  $('panR').addEventListener('click', () => { sc.scrollLeft += sc.clientWidth; });
-  $('panL').addEventListener('click', () => { sc.scrollLeft -= sc.clientWidth; });
-  $('mapnav').addEventListener('click', (e) => { const b = e.target.closest('[data-go]'); if (b) sc.scrollLeft = +b.dataset.go * sc.clientWidth; });
+  $('panR').addEventListener('click', () => { sc.scrollLeft += screenW(); });
+  $('panL').addEventListener('click', () => { sc.scrollLeft -= screenW(); });
+  $('mapnav').addEventListener('click', (e) => { const b = e.target.closest('[data-go]'); if (b) goScreen(+b.dataset.go); });
   sc.addEventListener('scroll', panState, { passive: true });
   window.addEventListener('resize', panState);
   $('friends').addEventListener('click', () => showBook());
