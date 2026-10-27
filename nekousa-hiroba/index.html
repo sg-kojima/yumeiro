@@ -310,8 +310,10 @@ button:disabled { opacity: .5; cursor: default; transform: none; box-shadow: 0 3
     <svg id="scene" viewBox="0 0 1800 640" role="img" aria-label="ねこうさひろばの むら">
       <defs>
         <g id="berry">
-          <path d="M0,-4.5 C5.5,-5 6.5,0.5 0,7.5 C-6.5,0.5 -5.5,-5 0,-4.5Z" fill="#ef5b6b" stroke="#4a3b33" stroke-width="1"/>
-          <path d="M-4,-4.5 L-1.5,-3 L0,-6.5 L1.5,-3 L4,-4.5 L2.5,-2 L-2.5,-2Z" fill="#7cc46a" stroke="#4a3b33" stroke-width=".8" stroke-linejoin="round"/>
+          <path d="M0,-4.2 C4.2,-5.6 7.2,-2.4 6.4,1.6 C5.7,4.9 2.8,7.2 0,7.2 C-2.8,7.2 -5.7,4.9 -6.4,1.6 C-7.2,-2.4 -4.2,-5.6 0,-4.2Z" fill="#ef5b6b" stroke="#4a3b33" stroke-width="1" stroke-linejoin="round"/>
+          <ellipse cx="-3" cy="-1.6" rx="1.5" ry="1" fill="#fff" opacity=".55"/>
+          <g fill="#7cc46a" stroke="#4a3b33" stroke-width=".8"><ellipse cx="-2.6" cy="-4.3" rx="2.4" ry="1.4" transform="rotate(-18 -2.6 -4.3)"/><ellipse cx="2.6" cy="-4.3" rx="2.4" ry="1.4" transform="rotate(18 2.6 -4.3)"/><ellipse cx="0" cy="-4.6" rx="1.6" ry="1.8"/></g>
+          <path d="M0,-5.6 Q0.4,-7.4 1.6,-7.8" fill="none" stroke="#4a3b33" stroke-width=".9" stroke-linecap="round"/>
           <circle cx="-1.8" cy="0" r=".55" fill="#ffe9a0"/><circle cx="1.8" cy="0.4" r=".55" fill="#ffe9a0"/><circle cx="0" cy="3" r=".55" fill="#ffe9a0"/>
         </g>
         <!-- light comes from the upper left: every gradient below follows that -->
@@ -583,14 +585,14 @@ button:disabled { opacity: .5; cursor: default; transform: none; box-shadow: 0 3
   const NAME = { koke: 'コケ', sakura: 'さくら', tonsuke: 'とんすけ', shirousa: 'しろうさ', chausa: 'ちゃうさ' };
   const ROOM_LINES = {
     sakura: ['いらっしゃい！ ゆっくりしていってね', 'おへやの かざりつけ、たのしいね', 'みんなで おちゃかい しようよ'],
-    tonsuke: ['ぶひっ、ぼくの おへやへ ようこそ', 'ベッドで ごろごろ するのが すき', 'いちごクッション ほしいな'],
+    tonsuke: ['ぷぴっ、ぼくの おへやへ ようこそ', 'ベッドで ごろごろ するのが すき', 'いちごクッション ほしいな'],
     shirousa: ['しずかで おちつく おへやでしょ', 'くだものの えを かざりたいな', 'ちゃうさの おうちにも いきたいな'],
     chausa: ['キッチンで おかしを つくりたいな', 'ケーキの においの する おへや！', 'しろうさ、あそびに きてね'],
     koke: ['さくらの おうち、ひろいね！', 'ぴよっ、たのしい！', 'おみせは ちょっと おやすみ〜'],
   };
   const HOME_THANKS = {
     sakura: 'わあ、ひろい おうち！ みんなを よんで おちゃかいが できるね',
-    tonsuke: 'ぶひっ、ぼくの おうちだ！ ありがとう！',
+    tonsuke: 'ぷぴっ、ぼくの おうちだ！ ありがとう！',
     shirousa: 'まどから かじゅえんが みえるかな？ うれしい！',
     chausa: 'キッチンを おいて おかしを つくりたいな！',
   };
@@ -820,8 +822,8 @@ button:disabled { opacity: .5; cursor: default; transform: none; box-shadow: 0 3
       <ellipse cx="58" cy="178" rx="50" ry="7" fill="url(#shadowG)"/>
       <rect x="18" y="124" width="70" height="52" rx="5" fill="#fff6e4" stroke="#4a3b33" stroke-width="1.8"/>
       <rect x="19" y="125" width="68" height="50" rx="4" fill="url(#wallShade)"/><rect x="19" y="125" width="68" height="50" rx="4" fill="url(#aoG)"/>
-      <path d="M12,128 L53,95 L94,128Z" fill="#f6a5a0" stroke="#4a3b33" stroke-width="1.8" stroke-linejoin="round"/>
-      <path d="M13,127.5 L53,96 L93,127.5Z" fill="url(#roofLight)"/>
+      <path d="M12,128 C7,118 40,95 53,95 C66,95 99,118 94,128Z" fill="#f6a5a0" stroke="#4a3b33" stroke-width="1.8" stroke-linejoin="round"/>
+      <path d="M13,127.5 C8.5,118 40,96 53,96 C66,96 97.5,118 93,127.5Z" fill="url(#roofLight)"/>
       <path d="M19,129 H87 V134 C60,131 40,131 19,134Z" fill="#7a5236" opacity=".12"/>
       <g fill="#f48f8a"><circle cx="40" cy="117" r="2.6"/><circle cx="62" cy="111" r="2.6"/><circle cx="72" cy="121" r="2.6"/></g>
       <circle cx="53" cy="114" r="5.5" fill="#cfeaf7" stroke="#4a3b33" stroke-width="1.4"/>
@@ -851,8 +853,8 @@ button:disabled { opacity: .5; cursor: default; transform: none; box-shadow: 0 3
       <ellipse cx="315" cy="179" rx="52" ry="7" fill="url(#shadowG)"/>
       <rect x="272" y="128" width="74" height="50" rx="5" fill="#fff1f4" stroke="#4a3b33" stroke-width="1.8"/>
       <rect x="273" y="129" width="72" height="48" rx="4" fill="url(#wallShade)"/><rect x="273" y="129" width="72" height="48" rx="4" fill="url(#aoG)"/>
-      <path d="M266,131 L272,104 L278,91 L289,104 L329,104 L340,91 L346,104 L352,131Z" fill="#c99a6e" stroke="#4a3b33" stroke-width="1.8" stroke-linejoin="round"/>
-      <path d="M267,130 L272.8,104.5 L278,92.5 L289,105 L329,105 L340,92.5 L345.2,104.5 L351,130Z" fill="url(#roofLight)"/>
+      <path d="M266,131 L272,104 L275,95.5 Q278,88.5 282,94 L289,104 L329,104 L336,94 Q340,88.5 343,95.5 L346,104 L352,131Z" fill="#c99a6e" stroke="#4a3b33" stroke-width="1.8" stroke-linejoin="round"/>
+      <path d="M267,130 L272.8,104.5 L275.6,96.5 Q278,90.5 281.4,95 L289,105 L329,105 L336.6,95 Q340,90.5 342.4,96.5 L345.2,104.5 L351,130Z" fill="url(#roofLight)"/>
       <path d="M268,123 Q274,129 280,123 Q286,129 292,123 Q298,129 304,123 Q310,129 316,123 Q322,129 328,123 Q334,129 340,123 Q346,129 351,123 L352,131 L266,131Z" fill="#fff8ee" stroke="#4a3b33" stroke-width="1.2" stroke-linejoin="round"/>
       <path d="M279.5,99 L278,94 L284,100Z M338.5,99 L340,94 L334,100Z" fill="#f6b3c4"/>
       <circle cx="301" cy="113" r="1.6" fill="#4a3b33"/><circle cx="317" cy="113" r="1.6" fill="#4a3b33"/>
@@ -1115,7 +1117,7 @@ button:disabled { opacity: .5; cursor: default; transform: none; box-shadow: 0 3
     const h = HOMES[key], c = h.cx, b = 440;
     let ears = '', gable = `<circle cx="${c}" cy="${b - 76}" r="7" fill="#cfeaf7" stroke="#4a3b33" stroke-width="1.4"/>`;
     if (key === 'tonsuke') {
-      ears = `<path d="M${c - 31},${b - 72} L${c - 30},${b - 100} L${c - 12},${b - 86}Z M${c + 31},${b - 72} L${c + 30},${b - 100} L${c + 12},${b - 86}Z" fill="${h.roof}" stroke="#4a3b33" stroke-width="1.6" stroke-linejoin="round"/>`;
+      ears = `<path d="M${c - 31},${b - 72} L${c - 31},${b - 94} Q${c - 30},${b - 102} ${c - 24},${b - 97} L${c - 12},${b - 86}Z M${c + 31},${b - 72} L${c + 31},${b - 94} Q${c + 30},${b - 102} ${c + 24},${b - 97} L${c + 12},${b - 86}Z" fill="${h.roof}" stroke="#4a3b33" stroke-width="1.6" stroke-linejoin="round"/>`;
       gable = `<ellipse cx="${c}" cy="${b - 75}" rx="10" ry="7" fill="#ff9fb6" stroke="#4a3b33" stroke-width="1.4"/><ellipse cx="${c - 3.4}" cy="${b - 75}" rx="1.6" ry="2.4" fill="#c4507a"/><ellipse cx="${c + 3.4}" cy="${b - 75}" rx="1.6" ry="2.4" fill="#c4507a"/>`;
     } else {
       ears = [-1, 1].map(sd => `<g transform="rotate(${sd * 12} ${c + sd * 9} ${b - 100})"><ellipse cx="${c + sd * 9}" cy="${b - 114}" rx="5.5" ry="15" fill="${h.ear}" stroke="#4a3b33" stroke-width="1.5"/><ellipse cx="${c + sd * 9}" cy="${b - 113}" rx="2.6" ry="10" fill="${h.inner}"/></g>`).join('');
@@ -1124,8 +1126,8 @@ button:disabled { opacity: .5; cursor: default; transform: none; box-shadow: 0 3
       <ellipse cx="${c + 6}" cy="${b + 2}" rx="52" ry="7" fill="url(#shadowG)"/>${ears}
       <rect class="focus-ring" x="${c - 36}" y="${b - 62}" width="72" height="62" rx="5" fill="${h.wall}" stroke="#4a3b33" stroke-width="1.8"/>
       <rect x="${c - 35}" y="${b - 61}" width="70" height="60" rx="4" fill="url(#wallShade)"/><rect x="${c - 35}" y="${b - 61}" width="70" height="60" rx="4" fill="url(#aoG)"/>
-      <path d="M${c - 45},${b - 56} L${c},${b - 104} L${c + 45},${b - 56}Z" fill="${h.roof}" stroke="#4a3b33" stroke-width="1.8" stroke-linejoin="round"/>
-      <path d="M${c - 44},${b - 56.5} L${c},${b - 103} L${c + 44},${b - 56.5}Z" fill="url(#roofLight)"/>
+      <path d="M${c - 45},${b - 56} C${c - 51},${b - 68} ${c - 14},${b - 104} ${c},${b - 104} C${c + 14},${b - 104} ${c + 51},${b - 68} ${c + 45},${b - 56}Z" fill="${h.roof}" stroke="#4a3b33" stroke-width="1.8" stroke-linejoin="round"/>
+      <path d="M${c - 44},${b - 56.5} C${c - 49.5},${b - 68} ${c - 14},${b - 103} ${c},${b - 103} C${c + 14},${b - 103} ${c + 49.5},${b - 68} ${c + 44},${b - 56.5}Z" fill="url(#roofLight)"/>
       <path d="M${c - 35},${b - 56} H${c + 35} V${b - 51} C${c + 10},${b - 54} ${c - 10},${b - 54} ${c - 35},${b - 51}Z" fill="#7a5236" opacity=".12"/>
       ${gable}
       <path d="M${c - 10},${b} V${b - 22} C${c - 10},${b - 33} ${c + 10},${b - 33} ${c + 10},${b - 22} V${b}Z" fill="#c99a6e" stroke="#4a3b33" stroke-width="1.6"/>
@@ -1146,12 +1148,12 @@ button:disabled { opacity: .5; cursor: default; transform: none; box-shadow: 0 3
       <use href="#flower" x="${x + 8}" y="166"/><use href="#flower" x="${x + 26}" y="166"/>`;
     return `<g class="tap" data-home="sakura" tabindex="0" role="button" aria-label="さくらの おうちに はいる">
       <ellipse cx="908" cy="207" rx="120" ry="10" fill="url(#shadowG)"/>
-      <path d="M830,66 L840,34 L864,60Z M936,60 L960,34 L970,66Z" fill="#f8c6d4" stroke="#4a3b33" stroke-width="1.8" stroke-linejoin="round"/>
+      <path d="M830,66 L837,41 Q840,32 846,39 L864,60Z M936,60 L954,39 Q960,32 963,41 L970,66Z" fill="#f8c6d4" stroke="#4a3b33" stroke-width="1.8" stroke-linejoin="round"/>
       <path d="M840,56 L843,43 L852,57Z M948,57 L957,43 L960,56Z" fill="#f6a5c0"/>
       <rect class="focus-ring" x="800" y="118" width="200" height="88" rx="6" fill="#fff" stroke="#4a3b33" stroke-width="2"/>
       <rect x="801" y="119" width="198" height="86" rx="5" fill="url(#wallShade)"/><rect x="801" y="119" width="198" height="86" rx="5" fill="url(#aoG)"/>
-      <path d="M786,124 L822,60 L978,60 L1014,124Z" fill="#f8c6d4" stroke="#4a3b33" stroke-width="2" stroke-linejoin="round"/>
-      <path d="M787,123 L822.6,61 L977.4,61 L1013,123Z" fill="url(#roofLight)"/>
+      <path d="M786,124 C779,104 806,62 830,60 L970,60 C994,62 1021,104 1014,124Z" fill="#f8c6d4" stroke="#4a3b33" stroke-width="2" stroke-linejoin="round"/>
+      <path d="M787,123 C780.5,104 807,63 830,61 L970,61 C993,63 1019.5,104 1013,123Z" fill="url(#roofLight)"/>
       <path d="M801,125 H999 V132 C930,128 870,128 801,132Z" fill="#7a5236" opacity=".12"/>
       ${bl}
       <circle cx="900" cy="88" r="11" fill="#cfeaf7" stroke="#4a3b33" stroke-width="1.6"/><path d="M889,88 H911 M900,77 V99" stroke="#4a3b33" stroke-width="1"/>
@@ -1588,7 +1590,7 @@ button:disabled { opacity: .5; cursor: default; transform: none; box-shadow: 0 3
   function showTonVisit() {
     openModal(`<h2>だれか きたよ！</h2>
       <svg class="portrait" viewBox="-28 -24 56 46" aria-hidden="true">${tonsuke()}</svg>
-      <p class="say">「ぶひっ、ぼく <b>とんすけ</b>！<br>こんなに ひろい はたけ、はじめて みたよ。<br>ぼくも てつだって いい？」</p>
+      <p class="say">「ぷぴっ、ぼく <b>とんすけ</b>！<br>こんなに ひろい はたけ、はじめて みたよ。<br>ぼくも てつだって いい？」</p>
       <button class="primary" type="button" id="welcome2">いっしょに くらそう</button>`);
     $('welcome2').addEventListener('click', () => {
       S.tonsuke = 'friend'; save(); render();
@@ -2169,7 +2171,7 @@ button:disabled { opacity: .5; cursor: default; transform: none; box-shadow: 0 3
     }
     if (target.closest('#tonTap')) {
       petTap(target.closest('#tonTap'));
-      const lines = ['ぶひっ、きょうも いい てんき！', 'はたけしごとは まかせて', 'いちご、ひとつ たべても いい？'];
+      const lines = ['ぷぴっ、きょうも いい てんき！', 'はたけしごとは まかせて', 'いちご、ひとつ たべても いい？'];
       return toast('とんすけ「' + lines[Math.floor(Math.random() * lines.length)] + '」');
     }
     if (target.closest('#kokeTap')) {
