@@ -1,6 +1,6 @@
 // オフライン用: 一度ひらいたら ぜんぶ キャッシュして ネットなしでも あそべる
-const CACHE = 'yumeiro-v19';
-const FILES = ['./', 'index.html', 'style.css', 'charset.js', 'icons.js', 'chars.js', 'mypics.js', 'buildings.js', 'field.js', 'app.js', 'english.js', 'catch.js', 'fishing.js', 'room.js', 'kanji.js', 'kanjidig.js', 'merge.js', 'manifest.json', 'icons/icon-180.png', 'icons/icon-192.png', 'icons/icon-512.png'];
+const CACHE = 'yumeiro-v20';
+const FILES = ['./', 'index.html', 'style.css', 'charset.js', 'icons.js', 'chars.js', 'mypics.js', 'buildings.js', 'field.js', 'app.js', 'english.js', 'catch.js', 'fishing.js', 'room.js', 'kanji.js', 'kanjidig.js', 'merge.js', 'juice.js', 'parking.js', 'manifest.json', 'icons/icon-180.png', 'icons/icon-192.png', 'icons/icon-512.png'];
 
 self.addEventListener('install', (e) => {
   e.waitUntil(caches.open(CACHE).then((c) => c.addAll(FILES)).then(() => self.skipWaiting()));
