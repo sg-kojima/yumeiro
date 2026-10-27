@@ -1,0 +1,2248 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="コケと ねこうさ">
+<style>[hidden]{display:none!important}body{margin:0}</style>
+<title>コケと ねこうさひろば</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Yusei+Magic&family=Zen+Maru+Gothic:wght@500;700&display=swap">
+<style>
+/* Layout: one tall card — HUD on top, the hand-drawn village scene, a big sell button under it. Single pastel look by choice. */
+:root {
+  --sky: #fdf6e9;        /* paper */
+  --ink: #4a3b33;        /* crayon-brown line */
+  --ink-soft: #8a776a;
+  --grass: #cfe6a4;
+  --strawberry: #ef5b6b;
+  --butter: #ffe08a;
+  --peach: #ffc9a8;
+  --mint: #9fd9b4;
+  --card: #fffdf7;
+  --font-title: "Yusei Magic", "Zen Maru Gothic", "Hiragino Maru Gothic ProN", sans-serif;
+  --font-body: "Zen Maru Gothic", "Hiragino Maru Gothic ProN", "Hiragino Sans", "Meiryo", sans-serif;
+  color-scheme: light;
+}
+html, body { height: 100%; }
+body {
+  background: var(--sky);
+  color: var(--ink);
+  font-family: var(--font-body);
+  font-weight: 500;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 12px 20px;
+  -webkit-tap-highlight-color: transparent;
+}
+.app { max-width: 460px; margin: 0 auto; display: flex; flex-direction: column; gap: 10px; }
+header { display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
+h1 { font-family: var(--font-title); font-weight: 400; font-size: 1.7rem; margin: 0; letter-spacing: .04em; }
+h1 { display: flex; align-items: center; gap: 2px; }
+h1 .kk { color: #f0a04b; font-size: .82em; margin-right: .25em; }
+h1 svg { width: 1.35em; height: 1.2em; margin-right: 2px; flex: none; }
+h1 .ne { color: #e88aa6; } h1 .u { color: #7cb8e0; } h1 .h { color: #8cc46e; }
+.hud { display: flex; gap: 5px; flex-wrap: wrap; }
+.chip {
+  display: flex; align-items: center; gap: 4px;
+  background: var(--card); border: 2px solid var(--ink); border-radius: 999px;
+  padding: 1px 8px 1px 3px; font-weight: 700; font-size: .95rem;
+  font-variant-numeric: tabular-nums;
+}
+.chip svg { width: 21px; height: 21px; }
+.chip.pop { animation: pop .35s ease; }
+@keyframes pop { 50% { transform: scale(1.15); } }
+
+.scene-wrap {
+  position: relative; border: 2.5px solid var(--ink); border-radius: 22px; overflow: hidden;
+  background: var(--grass); box-shadow: 0 4px 0 rgba(74,59,51,.18);
+}
+/* the village is two screens wide; it scrolls sideways inside the frame */
+.scroller { overflow-x: auto; overflow-y: hidden; scroll-behavior: smooth; scrollbar-width: none; overscroll-behavior-x: contain; }
+.scroller::-webkit-scrollbar { display: none; }
+#scene { display: block; width: 500%; max-width: none; height: auto; touch-action: pan-x; }
+.scene-wrap::before, .scene-wrap::after { content: ''; position: absolute; inset: 0; pointer-events: none; border-radius: inherit; z-index: 1; }
+.scene-wrap::before { background: radial-gradient(110% 70% at 12% -5%, rgba(255,246,214,.38), rgba(255,246,214,0) 60%); }
+.scene-wrap::after { box-shadow: inset 0 0 38px rgba(96,80,40,.18), inset 0 -14px 26px rgba(96,80,40,.07); }
+.pan {
+  z-index: 2;
+  position: absolute; bottom: 10px; width: 40px; height: 40px; padding: 0; border-radius: 50%;
+  background: var(--card); font-size: 1.2rem; line-height: 1; box-shadow: 0 2px 0 var(--ink); border-width: 2px;
+}
+.pan:active { transform: translateY(2px); box-shadow: 0 0 0 var(--ink); }
+#panL { left: 10px; } #panR { right: 10px; }
+@keyframes nudge { 0%,100% { transform: translateX(0); } 50% { transform: translateX(4px); } }
+#panR.nudge { animation: nudge 1.2s ease-in-out infinite; }
+.tap { cursor: pointer; }
+.tap:focus { outline: none; }
+.tap:focus-visible > .focus-ring { stroke: #5b9bd5; stroke-width: 3; }
+.hint {
+  min-height: 2.6em; text-align: center; font-size: .98rem; line-height: 1.35;
+  color: var(--ink); text-wrap: balance;
+}
+/* big picture buttons that stay at the bottom of the screen */
+.actions {
+  display: grid; grid-template-columns: repeat(6, 1fr); gap: 4px;
+  position: sticky; bottom: 0; z-index: 5; background: var(--sky);
+  padding: 8px 0 calc(10px + env(safe-area-inset-bottom, 0px)); margin-bottom: -10px;
+  box-shadow: 0 -10px 12px -8px rgba(74,59,51,.12);
+}
+#decoBtn { background: var(--mint); }
+#orderBtn { background: var(--peach); }
+#questBtn { background: #fbe0e8; }
+#trainBtn { background: #cfe6f5; }
+.quest-list { display: flex; flex-direction: column; gap: 8px; text-align: left; }
+.quest { display: grid; grid-template-columns: 46px 1fr auto; gap: 8px; align-items: center; background: #f7f3ea; border-radius: 14px; padding: 7px 10px; }
+.quest.done { opacity: .6; }
+.quest svg.face { width: 46px; height: 46px; }
+.quest small { display: block; color: var(--ink-soft); font-size: .75rem; }
+.quest b { display: block; font-size: .9rem; line-height: 1.3; }
+.quest .bar { height: 7px; background: #e9dccb; border-radius: 4px; margin: 4px 0 2px; overflow: hidden; }
+.quest .bar i { display: block; height: 100%; background: #9fdc8a; border-radius: 4px; }
+.quest .side { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; }
+.quest .reward { font-weight: 700; font-size: .82rem; white-space: nowrap; }
+.quest button { font-size: .8rem; padding: 5px 9px; border-radius: 11px; border-width: 2px; box-shadow: 0 2px 0 var(--ink); background: var(--strawberry); color: #fff; }
+.quest .ok { font-size: 1.2rem; color: #5f9e4a; font-weight: 700; }
+.quest.bonus { grid-template-columns: 46px 1fr auto; background: #fff1f4; }
+.actions button { position: relative; display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 6px 0 5px; border-radius: 16px; font-size: .66rem; line-height: 1.1; letter-spacing: -.02em; white-space: nowrap; min-width: 0; }
+.actions .ic { width: 36px; height: 36px; border-radius: 50%; background: #fff; border: 2px solid var(--ink); display: grid; place-items: center; }
+.actions .ic svg { width: 28px; height: 28px; }
+.actions .badge { position: absolute; top: -7px; right: -3px; background: #ffd45e; color: var(--ink); text-shadow: none; font-size: .66rem; border: 2px solid var(--ink); border-radius: 999px; padding: 0 5px; line-height: 1.45; font-variant-numeric: tabular-nums; }
+.actions .badge.ready { background: var(--strawberry); color: #fff; }
+.orders { display: flex; flex-direction: column; gap: 6px; }
+.orders h3 { margin: 0; font-family: var(--font-title); font-weight: 400; font-size: 1.05rem; }
+.order {
+  display: grid; grid-template-columns: 44px 1fr auto; gap: 10px; align-items: center;
+  background: var(--card); border: 2px solid var(--ink); border-radius: 16px; padding: 6px 10px;
+}
+.order svg.face { width: 44px; height: 44px; }
+.order .who { font-weight: 700; font-size: .9rem; }
+.order .want { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 2px; }
+.order .want span { display: inline-flex; align-items: center; gap: 2px; font-size: .88rem; font-variant-numeric: tabular-nums; }
+.order .want span.short { color: #c2475a; }
+.order .want svg { width: 18px; height: 18px; }
+.order .side { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; }
+.order .reward { font-weight: 700; font-size: .85rem; white-space: nowrap; }
+.order button { font-size: .85rem; padding: 6px 10px; border-radius: 12px; border-width: 2px; box-shadow: 0 2px 0 var(--ink); }
+.order .give { background: var(--strawberry); color: #fff; }
+.order .skip { background: transparent; box-shadow: none; border: none; padding: 0 2px; font-size: .75rem; color: var(--ink-soft); text-decoration: underline; }
+.order-wait { font-size: .85rem; color: var(--ink-soft); text-align: center; padding: 4px; }
+.modebar {
+  position: absolute; left: 10px; right: 10px; top: 10px; display: flex; align-items: center; justify-content: space-between; gap: 8px;
+  background: var(--card); border: 2px solid var(--ink); border-radius: 14px; padding: 6px 8px 6px 12px; font-weight: 700; font-size: .9rem; z-index: 3;
+}
+.modebar button { font-size: .85rem; padding: 5px 12px; border-radius: 10px; box-shadow: 0 2px 0 var(--ink); background: var(--butter); }
+.deco-list { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.deco-item { background: #f7f3ea; border-radius: 14px; padding: 8px; display: flex; flex-direction: column; align-items: center; gap: 4px; }
+.deco-item svg { width: 48px; height: 40px; }
+.deco-item small { color: var(--ink-soft); font-size: .78rem; }
+.deco-item .row { display: flex; gap: 6px; }
+.deco-item button { font-size: .8rem; padding: 5px 9px; border-radius: 10px; border-width: 2px; box-shadow: 0 2px 0 var(--ink); }
+.deco-item .buy { background: var(--butter); } .deco-item .put { background: var(--mint); }
+.tabs { display: flex; gap: 6px; justify-content: center; flex-wrap: wrap; }
+.tabs button { font-size: .85rem; padding: 6px 10px; border-radius: 12px; border-width: 2px; box-shadow: 0 2px 0 var(--ink); background: var(--card); }
+.tabs button[aria-pressed="true"] { background: var(--peach); }
+.book-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; max-height: 52vh; overflow-y: auto; padding: 2px; }
+.book-grid .friend svg { width: 72px; height: 72px; }
+.book-grid .unknown svg { opacity: .35; filter: grayscale(1); }
+.fishing { display: flex; flex-direction: column; gap: 12px; }
+.fishing svg { width: 100%; max-width: 260px; height: auto; margin: 0 auto; display: block; border-radius: 16px; border: 2px solid var(--ink); }
+@keyframes float { 0%,100% { transform: translateY(0); } 50% { transform: translateY(2px); } }
+@keyframes bite { 0%,100% { transform: translateY(0); } 30% { transform: translateY(9px); } 60% { transform: translateY(4px); } }
+#bobber { animation: float 1.6s ease-in-out infinite; transform-box: fill-box; }
+#bobber.bite { animation: bite .35s ease-in-out infinite; }
+.decos-remove .deco { cursor: pointer; }
+.mapnav { display: flex; gap: 5px; justify-content: center; flex-wrap: wrap; margin-top: -4px; }
+.mapnav button { font-size: .76rem; padding: 4px 8px; border-radius: 999px; border-width: 2px; box-shadow: 0 2px 0 var(--ink); background: var(--card); }
+.mapnav button[aria-current="true"] { background: var(--peach); }
+.modal.wide { max-width: 470px; max-height: 94vh; overflow-y: auto; }
+.room-wrap svg { width: 100%; height: auto; display: block; border-radius: 14px; border: 2px solid var(--ink); }
+.room-btns, .chips { display: flex; gap: 6px; justify-content: center; flex-wrap: wrap; }
+.room-btns button, .chips button { font-size: .85rem; padding: 6px 11px; border-radius: 12px; border-width: 2px; box-shadow: 0 2px 0 var(--ink); background: var(--butter); }
+.room-btns button[aria-pressed="true"], .chips button[aria-pressed="true"] { background: var(--peach); }
+.chips button { display: flex; flex-direction: column; align-items: center; background: var(--card); padding: 4px 8px; }
+.chips svg { width: 42px; height: 46px; }
+.furn-rm .furn { cursor: pointer; }
+.furn-rm .furn:hover { opacity: .65; }
+.decos-remove .deco:hover { opacity: .7; }
+button {
+  font-family: var(--font-body); font-weight: 700; font-size: 1.05rem; color: var(--ink);
+  border: 2.5px solid var(--ink); border-radius: 16px; padding: 12px 14px; cursor: pointer;
+  box-shadow: 0 3px 0 var(--ink); transition: transform .08s, box-shadow .08s;
+}
+button:active { transform: translateY(3px); box-shadow: 0 0 0 var(--ink); }
+button:focus-visible { outline: 3px solid #5b9bd5; outline-offset: 2px; }
+button:disabled { opacity: .5; cursor: default; transform: none; box-shadow: 0 3px 0 var(--ink); }
+#sell { background: var(--strawberry); color: #fff; text-shadow: 0 1px 0 rgba(74,59,51,.35); }
+#friends { background: var(--butter); }
+
+.toast {
+  z-index: 4;
+  position: absolute; left: 50%; top: 12px; transform: translateX(-50%);
+  background: var(--card); border: 2px solid var(--ink); border-radius: 14px;
+  padding: 6px 14px; font-weight: 700; font-size: .95rem; white-space: nowrap; max-width: 92%;
+  overflow: hidden; text-overflow: ellipsis; pointer-events: none;
+  opacity: 0; transition: opacity .25s, transform .25s;
+}
+.toast.show { opacity: 1; transform: translateX(-50%) translateY(2px); }
+
+.modal-back {
+  position: fixed; inset: 0; background: rgba(74,59,51,.35); display: flex;
+  align-items: center; justify-content: center; z-index: 20;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+.modal-back[hidden] { display: none; }
+.modal {
+  background: var(--card); border: 2.5px solid var(--ink); border-radius: 22px; padding: 18px;
+  width: 100%; max-width: 380px; display: flex; flex-direction: column; gap: 12px; text-align: center;
+  box-shadow: 0 5px 0 rgba(74,59,51,.25);
+}
+.modal h2 { font-family: var(--font-title); font-weight: 400; font-size: 1.4rem; margin: 0; }
+.modal p { margin: 0; line-height: 1.6; }
+.modal .say { background: #fff1f4; border-radius: 14px; padding: 10px 12px; }
+.modal svg.portrait { width: 140px; height: 140px; margin: 0 auto; display: block; }
+.modal .primary { background: var(--strawberry); color: #fff; }
+.modal .plain { background: var(--card); }
+.friend-list { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.friend { display: flex; flex-direction: column; align-items: center; gap: 2px; font-size: .85rem; }
+.friend svg { width: 76px; height: 76px; background: #f3f8e6; border-radius: 16px; border: 2px solid var(--ink); }
+.friend b { font-size: .95rem; }
+.friend .role { color: var(--ink-soft); min-height: 2.4em; }
+.sell-list { display: flex; flex-direction: column; gap: 8px; text-align: left; }
+.sell-row { display: grid; grid-template-columns: 40px 1fr auto; align-items: center; gap: 10px; background: #f7f3ea; border-radius: 14px; padding: 8px 10px; }
+.sell-row svg { width: 36px; height: 36px; }
+.sell-row .nm { min-width: 0; line-height: 1.3; }
+.sell-row .nm small { display: block; color: var(--ink-soft); font-size: .8rem; font-variant-numeric: tabular-nums; }
+.sell-row button { font-size: .92rem; padding: 8px 12px; background: var(--strawberry); color: #fff; border-radius: 12px; }
+.modal .note { font-size: .85rem; color: var(--ink-soft); }
+.chip[hidden] { display: none; }
+.foot { text-align: center; font-size: .78rem; color: var(--ink-soft); }
+.foot button { font-size: .78rem; padding: 4px 10px; border-width: 1.5px; box-shadow: none; background: transparent; border-radius: 10px; }
+
+@keyframes bob { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-3px); } }
+@keyframes squish { 0%,100% { transform: scale(1,1); } 50% { transform: scale(1.05,.93); } }
+@keyframes hop { 0%,70%,100% { transform: translateY(0); } 80% { transform: translateY(-7px); } 90% { transform: translateY(0); } }
+@keyframes sway { 0%,100% { transform: rotate(-2deg); } 50% { transform: rotate(2deg); } }
+@keyframes twinkle { 0%,100% { opacity: 0; transform: scale(.6); } 50% { opacity: 1; transform: scale(1); } }
+@keyframes cloud { from { transform: translateX(-80px); } to { transform: translateX(1840px); } }
+@keyframes swim { from { transform: translateX(90px); } to { transform: translateX(-130px); } }
+.swim { animation: swim 12s linear infinite; }
+.bob { animation: bob 2.6s ease-in-out infinite; transform-box: fill-box; }
+.squish { animation: squish 2.8s ease-in-out infinite; transform-box: fill-box; transform-origin: 50% 100%; }
+.hop { animation: hop 3.2s ease-in-out infinite; transform-box: fill-box; }
+.sway { animation: sway 4s ease-in-out infinite; transform-box: fill-box; transform-origin: 50% 100%; }
+.twinkle { animation: twinkle 1.6s ease-in-out infinite; transform-box: fill-box; transform-origin: center; }
+.cloud { animation: cloud 240s linear infinite; }
+/* friends' little faces: blink, glance around, ^^ when happy, wag tails and ears */
+@keyframes blink { 0%, 91%, 100% { transform: scaleY(1); } 94% { transform: scaleY(.1); } }
+@keyframes look { 0%, 30%, 100% { transform: translateX(0); } 38%, 52% { transform: translateX(1.1px); } 60%, 74% { transform: translateX(-1px); } }
+@keyframes wag { 0%, 100% { transform: rotate(-9deg); } 50% { transform: rotate(11deg); } }
+@keyframes tuft { 0%, 100% { transform: rotate(-12deg); } 50% { transform: rotate(10deg); } }
+@keyframes flap { 0%, 70%, 100% { transform: rotate(0); } 78% { transform: rotate(-22deg); } 86% { transform: rotate(4deg); } 92% { transform: rotate(-14deg); } }
+@keyframes earL { 0%, 78%, 100% { transform: rotate(0); } 84% { transform: rotate(-12deg); } 90% { transform: rotate(5deg); } }
+@keyframes earR { 0%, 60%, 100% { transform: rotate(0); } 66% { transform: rotate(12deg); } 72% { transform: rotate(-5deg); } }
+@keyframes joyjump { 0%, 100% { transform: translateY(0) scale(1); } 40% { transform: translateY(-8px) scale(1.04, .96); } }
+@keyframes emote { 0% { opacity: 0; transform: translateY(4px) scale(.5); } 20% { opacity: 1; transform: translateY(0) scale(1.1); } 75% { opacity: 1; transform: translateY(-7px) scale(1); } 100% { opacity: 0; transform: translateY(-12px); } }
+.eye { animation: look 11s ease-in-out infinite; }
+.eye .open { animation: blink 5s ease-in-out infinite; transform-box: fill-box; transform-origin: center; }
+.joy { opacity: 0; }
+.happy .joy { opacity: 1; } .happy .open { opacity: 0; }
+.happy > .hop, .happy > .squish { animation: joyjump .45s ease-in-out 2 !important; }
+.tail { animation: wag 1.6s ease-in-out infinite; }
+.tuft { animation: tuft 2.6s ease-in-out infinite; }
+.wing { animation: flap 3.4s ease-in-out infinite; }
+.ear-l { animation: earL 4.2s ease-in-out infinite; }
+.ear-r { animation: earR 4.2s ease-in-out infinite; }
+.emote { pointer-events: none; }
+.emote-in { animation: emote 1.7s ease-out forwards; transform-box: fill-box; transform-origin: center; }
+@media (prefers-reduced-motion: reduce) {
+  .eye, .eye .open, .tail, .tuft, .wing, .ear-l, .ear-r, .happy > .hop, .happy > .squish { animation: none !important; }
+  .bob, .squish, .hop, .sway, .twinkle, .cloud, .swim, .chip.pop, #panR.nudge { animation: none; }
+  .twinkle { opacity: 1; }
+}
+</style>
+
+<div class="app">
+  <header>
+    <h1 aria-label="コケと ねこうさひろば"><svg id="logoKoke" viewBox="-24 -22 48 40" aria-hidden="true"></svg><span class="kk">コケと</span><span class="ne">ねこ</span><span class="u">うさ</span><span class="h">ひろば</span></h1>
+    <div class="hud">
+      <div class="chip" id="coinChip" aria-label="コイン">
+        <svg viewBox="-12 -12 24 24" aria-hidden="true"><circle r="10" fill="#ffd45e" stroke="#4a3b33" stroke-width="1.8"/><circle r="6.5" fill="none" stroke="#e0a92e" stroke-width="1.4"/><path d="M-2,-3 L0,-5 L2,-3 M0,-5 V5" stroke="#b07b12" stroke-width="1.6" fill="none" stroke-linecap="round"/></svg>
+        <span id="coins">0</span>
+      </div>
+      <div class="chip" id="stockChip" aria-label="いちご">
+        <svg viewBox="-12 -12 24 24" aria-hidden="true"><use href="#berry" transform="scale(1.35) translate(0,1)"/></svg>
+        <span id="stock">0</span>
+      </div>
+      <div class="chip" id="appleChip" aria-label="りんご" hidden>
+        <svg viewBox="-12 -12 24 24" aria-hidden="true"><use href="#apple" transform="scale(1.35) translate(0,1)"/></svg>
+        <span id="apples">0</span>
+      </div>
+      <div class="chip" id="grapeChip" aria-label="ぶどう" hidden>
+        <svg viewBox="-12 -12 24 24" aria-hidden="true"><use href="#grape" transform="scale(1.3) translate(0,1.5)"/></svg>
+        <span id="grapes">0</span>
+      </div>
+      <div class="chip" id="fishChip" aria-label="さかな" hidden>
+        <svg viewBox="-12 -12 24 24" aria-hidden="true"><use href="#fish" fill="#9cc9e8" transform="scale(1.05)"/></svg>
+        <span id="fishN">0</span>
+      </div>
+      <div class="chip" id="eggChip" aria-label="たまご" hidden>
+        <svg viewBox="-12 -12 24 24" aria-hidden="true"><use href="#egg" transform="scale(1.45)"/></svg>
+        <span id="eggs">0</span>
+      </div>
+      <div class="chip" id="cakeChip" aria-label="いちごケーキ" hidden>
+        <svg viewBox="-12 -12 24 24" aria-hidden="true"><use href="#cake" transform="scale(1.2) translate(0,1)"/></svg>
+        <span id="cakes">0</span>
+      </div>
+    </div>
+  </header>
+
+  <div class="scene-wrap">
+    <div class="scroller" id="scroller">
+    <svg id="scene" viewBox="0 0 1800 640" role="img" aria-label="ねこうさひろばの むら">
+      <defs>
+        <g id="berry">
+          <path d="M0,-4.5 C5.5,-5 6.5,0.5 0,7.5 C-6.5,0.5 -5.5,-5 0,-4.5Z" fill="#ef5b6b" stroke="#4a3b33" stroke-width="1"/>
+          <path d="M-4,-4.5 L-1.5,-3 L0,-6.5 L1.5,-3 L4,-4.5 L2.5,-2 L-2.5,-2Z" fill="#7cc46a" stroke="#4a3b33" stroke-width=".8" stroke-linejoin="round"/>
+          <circle cx="-1.8" cy="0" r=".55" fill="#ffe9a0"/><circle cx="1.8" cy="0.4" r=".55" fill="#ffe9a0"/><circle cx="0" cy="3" r=".55" fill="#ffe9a0"/>
+        </g>
+        <!-- light comes from the upper left: every gradient below follows that -->
+        <radialGradient id="shadowG"><stop offset="0" stop-color="#4a3b33" stop-opacity=".34"/><stop offset=".6" stop-color="#4a3b33" stop-opacity=".16"/><stop offset="1" stop-color="#4a3b33" stop-opacity="0"/></radialGradient>
+        <radialGradient id="leafG" cx=".4" cy=".35" r=".7" fx=".3" fy=".25"><stop offset="0" stop-color="#bfe6a2"/><stop offset=".55" stop-color="#8fcb7a"/><stop offset="1" stop-color="#6aa95c"/></radialGradient>
+        <linearGradient id="trunkG" x1="0" x2="1"><stop offset="0" stop-color="#cfa077"/><stop offset=".6" stop-color="#b48459"/><stop offset="1" stop-color="#8f6441"/></linearGradient>
+        <linearGradient id="wallShade" x1="0" x2="1"><stop offset="0" stop-color="#fff" stop-opacity=".35"/><stop offset=".4" stop-color="#fff" stop-opacity="0"/><stop offset=".75" stop-color="#7a5236" stop-opacity=".05"/><stop offset="1" stop-color="#7a5236" stop-opacity=".26"/></linearGradient>
+        <linearGradient id="roofLight" x1="0" y1="0" x2=".75" y2="1"><stop offset="0" stop-color="#fff" stop-opacity=".45"/><stop offset=".45" stop-color="#fff" stop-opacity="0"/><stop offset="1" stop-color="#6b3a2c" stop-opacity=".2"/></linearGradient>
+        <linearGradient id="soilG" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#d6a97b"/><stop offset="1" stop-color="#b8875c"/></linearGradient>
+        <linearGradient id="pathG" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#f8ead0"/><stop offset="1" stop-color="#ead2a6"/></linearGradient>
+        <linearGradient id="groundG" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#d9edb4"/><stop offset=".45" stop-color="#cde5a1"/><stop offset="1" stop-color="#c2dd95"/></linearGradient>
+        <linearGradient id="hedgeG" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#a6d48c"/><stop offset="1" stop-color="#83bb6e"/></linearGradient>
+        <radialGradient id="patchL"><stop offset="0" stop-color="#eaf6cf" stop-opacity=".95"/><stop offset="1" stop-color="#eaf6cf" stop-opacity="0"/></radialGradient>
+        <radialGradient id="patchD"><stop offset="0" stop-color="#a9cf83" stop-opacity=".45"/><stop offset="1" stop-color="#a9cf83" stop-opacity="0"/></radialGradient>
+        <radialGradient id="waterG" cx=".45" cy=".4" r=".65"><stop offset="0" stop-color="#c3e8f5"/><stop offset=".65" stop-color="#97cfe6"/><stop offset="1" stop-color="#6fb2d2"/></radialGradient>
+        <pattern id="grassTex" width="70" height="58" patternUnits="userSpaceOnUse">
+          <g stroke="#a3c97f" stroke-width="1.1" stroke-linecap="round" fill="none" opacity=".38">
+            <path d="M8,14 l-1.4,-3.6 M10,14 l0,-4.4 M12,14 l1.4,-3.4"/><path d="M47,43 l-1.1,-3.2 M49,43 l0,-4"/><path d="M58,9 l-1,-3 M60,9 l1,-3"/><path d="M24,50 l0,-3.6 M26,50 l1.2,-3"/>
+          </g>
+          <circle cx="33" cy="22" r="1" fill="#eef8da" opacity=".9"/><circle cx="63" cy="31" r=".9" fill="#b6d892"/><circle cx="16" cy="36" r=".8" fill="#eef8da"/>
+        </pattern>
+        <linearGradient id="aoG" x1="0" y1="0" x2="0" y2="1"><stop offset=".55" stop-color="#7a5236" stop-opacity="0"/><stop offset="1" stop-color="#7a5236" stop-opacity=".18"/></linearGradient>
+        <filter id="pathEdge" x="-2%" y="-20%" width="104%" height="160%">
+          <feOffset in="SourceAlpha" dy="3.5" result="o"/><feFlood flood-color="#d2b382"/><feComposite in2="o" operator="in" result="e"/>
+          <feMerge><feMergeNode in="e"/><feMergeNode in="SourceGraphic"/></feMerge>
+        </filter>
+        <g id="tree">
+          <ellipse cx="6" cy="22" rx="21" ry="5.5" fill="url(#shadowG)"/>
+          <path d="M-4.5,4 C-4,12 -5,18 -6.5,22.5 H6.5 C5,18 4,12 4.5,4Z" fill="url(#trunkG)" stroke="#4a3b33" stroke-width="1.5" stroke-linejoin="round"/>
+          <path d="M0.0,-22.0 Q6.9,-22.4 11.9,-18.0 Q17.5,-14.3 18.2,-8.0 Q19.9,-1.8 16.0,3.5 Q13.0,9.2 6.3,11.0 Q0.0,13.5 -6.3,11.0 Q-13.0,9.2 -16.0,3.5 Q-19.9,-1.8 -18.2,-8.0 Q-17.5,-14.3 -11.9,-18.0 Q-6.9,-22.4 -0.0,-22.0Z" fill="url(#leafG)" stroke="#4a3b33" stroke-width="1.7" stroke-linejoin="round"/>
+          <path d="M-13,6 C-4,13 9,11 16,0 C14,10 4,15 -6,13 C-10,12 -12,9 -13,6Z" fill="#5f9a52" opacity=".28"/>
+          <ellipse cx="-7" cy="-13" rx="6.5" ry="3.6" fill="#e2f4cf" opacity=".75" transform="rotate(-28 -7 -13)"/>
+          <path d="M4,-6 q2,-2 4,0 M-4,2 q2,-2 4,0 M9,4 q2,-2 4,0" stroke="#5f9a52" stroke-width="1" fill="none" stroke-linecap="round" opacity=".6"/>
+        </g>
+        <g id="bush"><ellipse cx="4" cy="8" rx="15" ry="3.5" fill="url(#shadowG)"/><path d="M0.0,-9.0 Q6.6,-8.8 10.9,-5.6 Q14.9,-2.2 13.6,2.0 Q11.9,6.1 6.1,8.1 Q0.0,9.8 -6.1,8.1 Q-11.9,6.1 -13.6,2.0 Q-14.9,-2.2 -10.9,-5.6 Q-6.6,-8.8 -0.0,-9.0Z" fill="url(#leafG)" stroke="#4a3b33" stroke-width="1.5" stroke-linejoin="round"/><ellipse cx="-4" cy="-3.5" rx="4" ry="2.2" fill="#e2f4cf" opacity=".75"/></g>
+        <g id="egg">
+          <path d="M0,-6 C3.6,-6 5,-1 5,1.6 C5,4.8 2.8,6.4 0,6.4 C-2.8,6.4 -5,4.8 -5,1.6 C-5,-1 -3.6,-6 0,-6Z" fill="#fff8ea" stroke="#4a3b33" stroke-width="1"/>
+          <ellipse cx="-1.8" cy="-2" rx="1.2" ry="1.8" fill="#fff" />
+        </g>
+        <g id="cake">
+          <path d="M-8,-1 L-7.5,-8.5 L-3,-4.5 L3,-4.5 L7.5,-8.5 L8,-1 L8,5 C8,7.4 -8,7.4 -8,5Z" fill="#fff6ea" stroke="#4a3b33" stroke-width="1" stroke-linejoin="round"/>
+          <path d="M-8,1.6 H8 V3.4 H-8Z" fill="#f6b3c4"/>
+          <circle cx="-2.8" cy="-1.4" r=".8" fill="#4a3b33"/><circle cx="2.8" cy="-1.4" r=".8" fill="#4a3b33"/>
+          <path d="M-1,0 Q0,1 1,0" fill="none" stroke="#4a3b33" stroke-width=".6"/>
+          <use href="#berry" transform="translate(0,-6.6) scale(.55)"/>
+        </g>
+        <g id="apple">
+          <path d="M0,-4 C3,-7 7,-5 6.5,0.5 C6,5 3,7 0,6 C-3,7 -6,5 -6.5,0.5 C-7,-5 -3,-7 0,-4Z" fill="#ee5d5d" stroke="#4a3b33" stroke-width="1"/>
+          <path d="M0,-4 C0,-6 .5,-7.5 1.5,-8" fill="none" stroke="#8a5a3a" stroke-width="1.1" stroke-linecap="round"/>
+          <path d="M1,-6.5 C3,-9 6,-8 6,-6.5 C4,-5.5 2,-5.5 1,-6.5Z" fill="#7cc46a" stroke="#4a3b33" stroke-width=".6"/>
+          <ellipse cx="-3" cy="-1" rx="1.2" ry="2" fill="#fff" opacity=".6"/>
+        </g>
+        <g id="grape">
+          <g fill="#9b6fc4" stroke="#4a3b33" stroke-width=".8">
+            <circle cx="-4" cy="-3" r="2.6"/><circle cx="0" cy="-3.4" r="2.6"/><circle cx="4" cy="-3" r="2.6"/>
+            <circle cx="-2" cy="1" r="2.6"/><circle cx="2" cy="1" r="2.6"/><circle cx="0" cy="5" r="2.6"/>
+          </g>
+          <path d="M0,-6 C0,-8 1,-9 2,-9.5" fill="none" stroke="#8a5a3a" stroke-width="1.1" stroke-linecap="round"/>
+          <path d="M1.5,-8 C4,-10 7,-8.5 6.5,-7 C4.5,-6 2.5,-6.5 1.5,-8Z" fill="#7cc46a" stroke="#4a3b33" stroke-width=".6"/>
+        </g>
+        <linearGradient id="rainbow" x1="0" x2="1"><stop offset="0" stop-color="#f6a5c0"/><stop offset=".35" stop-color="#ffe08a"/><stop offset=".7" stop-color="#9fd9b4"/><stop offset="1" stop-color="#9cc9e8"/></linearGradient>
+        <g id="fish">
+          <path d="M-8,0 C-5,-5 3,-5 6,0 C3,5 -5,5 -8,0Z" stroke="#4a3b33" stroke-width="1"/>
+          <path d="M6,0 L10,-4 L10,4Z" stroke="#4a3b33" stroke-width="1" stroke-linejoin="round"/>
+          <circle cx="-4.5" cy="-.8" r="1" fill="#4a3b33"/>
+        </g>
+        <g id="flower"><g fill="#fff"><circle cx="0" cy="-2.6" r="2"/><circle cx="2.5" cy="-.8" r="2"/><circle cx="1.6" cy="2.1" r="2"/><circle cx="-1.6" cy="2.1" r="2"/><circle cx="-2.5" cy="-.8" r="2"/></g><circle r="1.3" fill="#ffd45e"/></g>
+      </defs>
+
+      <!-- ground -->
+      <rect width="1800" height="640" fill="url(#groundG)"/>
+      <rect width="1800" height="640" fill="url(#grassTex)"/>
+      <ellipse cx="250" cy="150" rx="120" ry="40" fill="url(#patchD)"/><ellipse cx="660" cy="320" rx="140" ry="44" fill="url(#patchD)"/><ellipse cx="1000" cy="460" rx="120" ry="36" fill="url(#patchD)"/><ellipse cx="1350" cy="300" rx="140" ry="44" fill="url(#patchD)"/><ellipse cx="1700" cy="200" rx="110" ry="40" fill="url(#patchD)"/>
+      <!-- a soft hedge along the far edge gives the meadow a back -->
+      <path d="M0,16 Q15,2 30,16 Q45,-4 60,16 Q75,2 90,16 Q105,-4 120,16 Q135,2 150,16 Q165,-4 180,16 Q195,2 210,16 Q225,-4 240,16 Q255,2 270,16 Q285,-4 300,16 Q315,2 330,16 Q345,-4 360,16 Q375,2 390,16 Q405,-4 420,16 Q435,2 450,16 Q465,-4 480,16 Q495,2 510,16 Q525,-4 540,16 Q555,2 570,16 Q585,-4 600,16 Q615,2 630,16 Q645,-4 660,16 Q675,2 690,16 Q705,-4 720,16 Q735,2 750,16 Q765,-4 780,16 Q795,2 810,16 Q825,-4 840,16 Q855,2 870,16 Q885,-4 900,16 Q915,2 930,16 Q945,-4 960,16 Q975,2 990,16 Q1005,-4 1020,16 Q1035,2 1050,16 Q1065,-4 1080,16 Q1095,2 1110,16 Q1125,-4 1140,16 Q1155,2 1170,16 Q1185,-4 1200,16 Q1215,2 1230,16 Q1245,-4 1260,16 Q1275,2 1290,16 Q1305,-4 1320,16 Q1335,2 1350,16 Q1365,-4 1380,16 Q1395,2 1410,16 Q1425,-4 1440,16 Q1455,2 1470,16 Q1485,-4 1500,16 Q1515,2 1530,16 Q1545,-4 1560,16 Q1575,2 1590,16 Q1605,-4 1620,16 Q1635,2 1650,16 Q1665,-4 1680,16 Q1695,2 1710,16 Q1725,-4 1740,16 Q1755,2 1770,16 Q1785,-4 1800,16 V-2 H0Z" fill="url(#hedgeG)" stroke="#6f9f5c" stroke-width="1.4" stroke-linejoin="round"/>
+      <path d="M0,478 C120,470 240,486 360,478 C480,470 600,486 720,478 C840,470 960,486 1080,478 C1200,470 1320,486 1440,478 C1560,470 1680,486 1800,478 V640 H0Z" fill="#d6ecad" stroke="#b9d78f" stroke-width="2.5"/>
+      <ellipse cx="120" cy="560" rx="80" ry="26" fill="url(#patchL)"/><ellipse cx="560" cy="590" rx="110" ry="30" fill="url(#patchL)"/><ellipse cx="930" cy="555" rx="90" ry="26" fill="url(#patchL)"/><ellipse cx="1290" cy="590" rx="110" ry="30" fill="url(#patchL)"/><ellipse cx="1650" cy="555" rx="90" ry="26" fill="url(#patchL)"/>
+      <g stroke="#4a3b33" stroke-width="1.4" fill="#fff3dc">
+        <rect x="140" y="482" width="80" height="22" rx="8"/>
+      </g>
+      <text x="180" y="498" text-anchor="middle" font-family="Yusei Magic, Zen Maru Gothic, sans-serif" font-size="12" fill="#5f9e4a">おにわ</text>
+      <use href="#flower" x="40" y="620"/><use href="#flower" x="330" y="612"/><use href="#flower" x="690" y="622"/><use href="#flower" x="1050" y="610"/><use href="#flower" x="1410" y="622"/><use href="#flower" x="1770" y="612"/>
+      <ellipse cx="1580" cy="70" rx="100" ry="32" fill="url(#patchL)"/><ellipse cx="1280" cy="80" rx="110" ry="36" fill="url(#patchL)"/><ellipse cx="1180" cy="430" rx="100" ry="34" fill="url(#patchL)"/><ellipse cx="900" cy="300" rx="120" ry="30" fill="url(#patchL)"/>
+      <ellipse cx="560" cy="80" rx="110" ry="36" fill="url(#patchL)"/>
+      <ellipse cx="460" cy="430" rx="100" ry="34" fill="url(#patchL)"/>
+      <ellipse cx="70" cy="60" rx="70" ry="30" fill="url(#patchL)"/>
+      <ellipse cx="300" cy="420" rx="90" ry="40" fill="url(#patchL)"/>
+      <g class="cloud" opacity=".85"><ellipse cx="0" cy="18" rx="26" ry="9" fill="#fff"/><ellipse cx="12" cy="12" rx="14" ry="9" fill="#fff"/></g>
+
+      <!-- path -->
+      <g filter="url(#pathEdge)">
+      <path d="M180,200 C170,215 120,212 60,222 C20,229 -10,226 -10,232 L-10,250 C40,246 120,244 360,240 L370,214 C300,218 220,214 195,200Z" fill="url(#pathG)" stroke="#e1c48f" stroke-width="1.6"/>
+      <path d="M350,214 C420,210 470,222 540,220 C610,218 660,212 730,216 L730,242 C660,238 610,244 540,246 C470,248 420,238 350,240Z" fill="url(#pathG)" stroke="#e1c48f" stroke-width="1.6"/>
+      <g transform="translate(360,0)"><path d="M350,214 C420,210 470,222 540,220 C610,218 660,212 730,216 L730,242 C660,238 610,244 540,246 C470,248 420,238 350,240Z" fill="url(#pathG)" stroke="#e1c48f" stroke-width="1.6"/></g>
+      <g transform="translate(720,0)"><path d="M350,214 C420,210 470,222 540,220 C610,218 660,212 730,216 L730,242 C660,238 610,244 540,246 C470,248 420,238 350,240Z" fill="url(#pathG)" stroke="#e1c48f" stroke-width="1.6"/><path d="M710,216 C780,212 820,206 880,200 C920,196 940,190 960,180 L980,196 C950,212 920,220 880,226 C820,234 780,240 710,242Z" fill="url(#pathG)" stroke="#e1c48f" stroke-width="1.6"/></g>
+      </g>
+      <g fill="#e6d5b8" stroke="#cdb48a" stroke-width=".8">
+        <ellipse cx="70" cy="238" rx="4" ry="2.4"/><ellipse cx="160" cy="236" rx="3" ry="1.8"/><ellipse cx="300" cy="230" rx="3.6" ry="2.2"/>
+        <ellipse cx="450" cy="232" rx="3" ry="1.8"/><ellipse cx="610" cy="236" rx="4" ry="2.4"/><ellipse cx="800" cy="228" rx="3.2" ry="2"/>
+        <ellipse cx="960" cy="236" rx="4" ry="2.4"/><ellipse cx="1180" cy="230" rx="3" ry="1.8"/><ellipse cx="1330" cy="236" rx="3.6" ry="2.2"/><ellipse cx="1520" cy="226" rx="3" ry="1.8"/>
+      </g>
+
+      <!-- decorations the player places -->
+      <g id="decos"></g>
+
+      <!-- trees and decor -->
+      <use href="#tree" x="28" y="70"/>
+      <use href="#tree" x="330" y="64"/>
+      <use href="#flower" x="88" y="186"/><use href="#flower" x="98" y="194"/><use href="#flower" x="282" y="190"/>
+      <use href="#flower" x="392" y="196"/><use href="#flower" x="702" y="200"/><use href="#flower" x="560" y="456"/><use href="#flower" x="690" y="448"/>
+      <use href="#flower" x="22" y="452"/><use href="#flower" x="338" y="454"/><use href="#flower" x="180" y="458"/>
+
+      <!-- fence -->
+      <g fill="url(#shadowG)"><ellipse cx="30" cy="275" rx="7" ry="2.5"/><ellipse cx="337" cy="275" rx="7" ry="2.5"/><ellipse cx="30" cy="443" rx="7" ry="2.5"/><ellipse cx="337" cy="443" rx="7" ry="2.5"/></g>
+      <g stroke="#4a3b33" stroke-width="1.4" fill="#fff3dc">
+        <rect x="24" y="252" width="5" height="22" rx="2"/><rect x="331" y="252" width="5" height="22" rx="2"/>
+        <rect x="24" y="420" width="5" height="22" rx="2"/><rect x="331" y="420" width="5" height="22" rx="2"/>
+      </g>
+
+      <!-- fruit shop (tap to sell) -->
+      <g id="shop" class="tap" tabindex="0" role="button" aria-label="くだものやさん：いちごをうる">
+        <rect class="focus-ring" x="96" y="20" width="168" height="182" rx="16" fill="transparent" stroke="none"/>
+        <ellipse cx="192" cy="194" rx="96" ry="11" fill="url(#shadowG)"/>
+        <!-- walls -->
+        <rect x="112" y="92" width="136" height="92" rx="6" fill="#fff6e4" stroke="#4a3b33" stroke-width="2"/>
+        <rect x="113" y="93" width="134" height="90" rx="5" fill="url(#wallShade)"/><rect x="113" y="93" width="134" height="90" rx="5" fill="url(#aoG)"/>
+        <!-- chimney (behind the roof) -->
+        <rect x="214" y="22" width="14" height="28" rx="3" fill="#ffd6b0" stroke="#4a3b33" stroke-width="1.8"/>
+        <use href="#berry" transform="translate(221,16) scale(1.2)"/>
+        <!-- roof: a round, puffy dome with a scalloped edge -->
+        <path d="M98,96 C96,60 132,32 180,32 C228,32 264,60 262,96 Q253.8,106 245.6,96 Q237.4,106 229.2,96 Q221.0,106 212.8,96 Q204.6,106 196.4,96 Q188.2,106 180.0,96 Q171.8,106 163.6,96 Q155.4,106 147.2,96 Q139.0,106 130.8,96 Q122.6,106 114.4,96 Q106.2,106 98.0,96Z" fill="#ffb3c1" stroke="#4a3b33" stroke-width="2" stroke-linejoin="round"/>
+        <path d="M98,96 C96,60 132,32 180,32 C228,32 264,60 262,96 Q253.8,106 245.6,96 Q237.4,106 229.2,96 Q221.0,106 212.8,96 Q204.6,106 196.4,96 Q188.2,106 180.0,96 Q171.8,106 163.6,96 Q155.4,106 147.2,96 Q139.0,106 130.8,96 Q122.6,106 114.4,96 Q106.2,106 98.0,96Z" fill="url(#roofLight)"/>
+        <path d="M128,56 C142,42 160,37 180,37" fill="none" stroke="#fff" stroke-width="4" stroke-linecap="round" opacity=".55"/>
+        <path d="M113,97 H247 V105 C200,101 160,101 113,105Z" fill="#7a5236" opacity=".13"/>
+        <g fill="#ff9aad"><circle cx="140" cy="62" r="4"/><circle cx="165" cy="76" r="4"/><circle cx="195" cy="62" r="4"/><circle cx="222" cy="78" r="4"/><circle cx="180" cy="50" r="3"/></g>
+        <!-- sign -->
+        <rect x="140" y="98" width="80" height="22" rx="8" fill="#fff" stroke="#4a3b33" stroke-width="1.8"/>
+        <text x="180" y="114" text-anchor="middle" font-family="Yusei Magic, Zen Maru Gothic, sans-serif" font-size="13" fill="#e2566b">くだものや</text>
+        <!-- awning -->
+        <path d="M116,126 H244 V138 Q236,146 228,138 Q220,146 212,138 Q204,146 196,138 Q188,146 180,138 Q172,146 164,138 Q156,146 148,138 Q140,146 132,138 Q124,146 116,138Z" fill="#fff" stroke="#4a3b33" stroke-width="1.8" stroke-linejoin="round"/>
+        <g fill="#9fd9b4"><rect x="132" y="126" width="16" height="12"/><rect x="164" y="126" width="16" height="12"/><rect x="196" y="126" width="16" height="12"/><rect x="228" y="126" width="16" height="12"/></g>
+        <path d="M116,126 H244" stroke="#4a3b33" stroke-width="1.8"/>
+        <!-- door + window -->
+        <rect x="164" y="146" width="32" height="38" rx="14" fill="#c99a6e" stroke="#4a3b33" stroke-width="1.8"/>
+        <circle cx="189" cy="166" r="1.8" fill="#4a3b33"/>
+        <rect x="122" y="148" width="30" height="22" rx="5" fill="#cfeaf7" stroke="#4a3b33" stroke-width="1.6"/>
+        <rect x="208" y="148" width="30" height="22" rx="5" fill="#cfeaf7" stroke="#4a3b33" stroke-width="1.6"/>
+        <!-- fruit stand -->
+        <rect x="118" y="178" width="124" height="16" rx="4" fill="#e8b98a" stroke="#4a3b33" stroke-width="1.8"/>
+        <g id="standFruit"></g>
+      </g>
+
+      <!-- おみせどおり (second screen): chicken coop and にゃんケーキ -->
+      <rect x="500" y="34" width="80" height="24" rx="8" fill="#fff6e4" stroke="#4a3b33" stroke-width="1.8"/>
+      <text x="540" y="51" text-anchor="middle" font-family="Yusei Magic, Zen Maru Gothic, sans-serif" font-size="12" fill="#e2566b">おみせどおり</text>
+      <g opacity=".85">
+        <rect x="498" y="104" width="84" height="80" rx="14" fill="#e5f1cc" stroke="#9cb977" stroke-width="2" stroke-dasharray="5 4"/>
+        <text x="540" y="140" text-anchor="middle" font-family="Yusei Magic, Zen Maru Gothic, sans-serif" font-size="10" fill="#8a776a">あきち</text>
+        <text x="540" y="156" text-anchor="middle" font-family="Zen Maru Gothic, sans-serif" font-weight="700" font-size="8.5" fill="#8a776a">おみせが できるかも</text>
+      </g>
+      <g id="coop" transform="translate(372,0)"></g>
+      <g id="bakery" transform="translate(330,0)"></g>
+
+      <!-- おうちの まち (third screen) -->
+      <g id="homes"></g>
+
+      <!-- ねこうさえき (on おみせどおり) -->
+      <g id="station"></g>
+
+      <!-- field -->
+      <g id="field"></g>
+
+      <!-- orchard (second screen) -->
+      <g id="orchard" transform="translate(720,0)"></g>
+
+      <!-- pond (third screen) -->
+      <g id="pond" transform="translate(720,0)"></g>
+
+      <!-- characters -->
+      <g id="cast"></g>
+    </svg>
+    </div>
+    <button class="pan" id="panL" type="button" aria-label="ひだりへ" hidden>←</button>
+    <button class="pan" id="panR" type="button" aria-label="みぎの とちへ">→</button>
+    <div class="modebar" id="modebar" hidden><span id="modeText"></span><button type="button" id="modeEnd">おわる</button></div>
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  </div>
+  <nav class="mapnav" id="mapnav" aria-label="ばしょ">
+    <button type="button" data-go="0">はたけ</button><button type="button" data-go="1">おみせ</button><button type="button" data-go="2">おうち</button><button type="button" data-go="3">かじゅえん</button><button type="button" data-go="4">いけ</button>
+  </nav>
+
+  <div class="hint" id="hint"></div>
+
+  <nav class="actions" aria-label="メニュー">
+    <button id="sell" type="button"><span class="ic"><svg viewBox="-16 -16 32 32" aria-hidden="true"><circle cx="-4" cy="3" r="9" fill="#ffd45e" stroke="#4a3b33" stroke-width="1.6"/><circle cx="-4" cy="3" r="5.5" fill="none" stroke="#e0a92e" stroke-width="1.3"/><use href="#berry" transform="translate(7,-4) scale(1.3)"/></svg></span><b>うる</b><span class="badge" id="sellAmt" hidden></span></button>
+    <button id="orderBtn" type="button"><span class="ic"><svg viewBox="-16 -16 32 32" aria-hidden="true"><rect x="-9" y="-11" width="18" height="23" rx="3" fill="#fff6e4" stroke="#4a3b33" stroke-width="1.6"/><rect x="-4.5" y="-13.5" width="9" height="5" rx="2" fill="#f6a5c0" stroke="#4a3b33" stroke-width="1.2"/><path d="M-5,-3 H5 M-5,2 H5 M-5,7 H1" stroke="#c9a873" stroke-width="1.6" stroke-linecap="round"/></svg></span><b>ちゅうもん</b><span class="badge" id="orderN" hidden></span></button>
+    <button id="questBtn" type="button"><span class="ic"><svg viewBox="-16 -16 32 32" aria-hidden="true"><rect x="-12" y="-8" width="24" height="17" rx="3" fill="#fff" stroke="#4a3b33" stroke-width="1.5"/><path d="M-12,-7 L0,3 L12,-7" fill="none" stroke="#4a3b33" stroke-width="1.4" stroke-linejoin="round"/><path d="M0,-1 C-1.4,-3.6 -5,-3 -5,-.4 C-5,2 -1.6,3.6 0,5 C1.6,3.6 5,2 5,-.4 C5,-3 1.4,-3.6 0,-1Z" fill="#ff8fab" stroke="#c4507a" stroke-width=".8"/></svg></span><b>おねがい</b><span class="badge ready" id="questN" hidden></span></button>
+    <button id="trainBtn" type="button"><span class="ic"><svg viewBox="-16 -16 32 32" aria-hidden="true"><rect x="-13" y="-2" width="20" height="11" rx="3" fill="#f6a5c0" stroke="#4a3b33" stroke-width="1.3"/><rect x="-1" y="-11" width="10" height="11" rx="2" fill="#fff" stroke="#4a3b33" stroke-width="1.3"/><path d="M0,-11 L1.5,-14 L4,-11 M5,-11 L7.5,-14 L9,-11" fill="#f6a5c0" stroke="#4a3b33" stroke-width="1" stroke-linejoin="round"/><rect x="-10" y="-7" width="5" height="5" rx="1" fill="#c99a6e" stroke="#4a3b33" stroke-width="1"/><circle cx="-7" cy="10" r="3.2" fill="#6b564a"/><circle cx="3" cy="10" r="3.2" fill="#6b564a"/><circle cx="-12" cy="-10" r="2.4" fill="#fff" stroke="#c9bfb4" stroke-width=".8"/></svg></span><b>れっしゃ</b><span class="badge" id="trainN" hidden></span></button>
+    <button id="decoBtn" type="button"><span class="ic"><svg viewBox="-16 -16 32 32" aria-hidden="true"><path d="M0,13 V0" stroke="#5f9e4a" stroke-width="2"/><path d="M0,8 C-6,4 -8,9 -7,11 C-3,11 -1,10 0,8Z" fill="#86c870" stroke="#4a3b33" stroke-width=".8"/><g transform="translate(0,-4)" fill="#f6a5c0" stroke="#4a3b33" stroke-width="1"><circle cy="-5" r="4"/><circle cx="4.8" cy="-1.5" r="4"/><circle cx="3" cy="4" r="4"/><circle cx="-3" cy="4" r="4"/><circle cx="-4.8" cy="-1.5" r="4"/><circle r="2.6" fill="#ffd45e"/></g></svg></span><b>かざり</b></button>
+    <button id="friends" type="button"><span class="ic"><svg viewBox="-16 -16 32 32" aria-hidden="true"><path d="M0,-8 C-4,-11 -10,-11 -13,-9 V10 C-10,8 -4,8 0,11 C4,8 10,8 13,10 V-9 C10,-11 4,-11 0,-8Z" fill="#9cc9e8" stroke="#4a3b33" stroke-width="1.5" stroke-linejoin="round"/><path d="M0,-8 V11" stroke="#4a3b33" stroke-width="1.3"/><path d="M-3,-1 C-4,-4 -8,-3 -7,0 C-6,2 -4,3 -3,4 C-2,3 0,2 1,0" fill="#ff8fab" transform="translate(-2,0) scale(.9)"/><use href="#berry" transform="translate(6.5,0) scale(.9)"/></svg></span><b>ずかん</b></button>
+  </nav>
+
+  <section class="orders" id="orders" hidden aria-live="polite"></section>
+
+  <div class="foot">データはこのブラウザに保存されます　<button id="reset" type="button">はじめから</button></div>
+</div>
+
+<div class="modal-back" id="modalBack" hidden>
+  <div class="modal" id="modal" role="dialog" aria-modal="true"></div>
+</div>
+
+<script>
+(function () {
+  const FAST = location.hash === '#fast';
+  const GROW_MS = FAST ? 15000 : 3 * 60 * 1000;   // いちご：約3分
+  const SEED_COST = 3;
+  const BERRIES_PER_HARVEST = 3;
+  const BASE_PRICE = 4;
+  const PLOT_PRICES = [20, 30, 45, 60, 80, 100, 130, 160];
+  const SAKURA_AFTER_SOLD = 24;
+  const TONSUKE_AFTER_PLOTS = 8;
+  const COOP_PRICE = 120, HEN_PRICES = [60, 90], EGG_MS = FAST ? 8000 : 2 * 60 * 1000, EGG_CAP = 3, EGG_PRICE = 5;
+  const BAKERY_PRICE = 200, BAKE_MS = FAST ? 8000 : 90 * 1000, CAKE_PRICE = 30, CAKE_BERRIES = 3, CAKE_EGGS = 1;
+  const LAND_PRICE = 300, POND_PRICE = 500, BAIT = 2;
+  const ORDER_MS = FAST ? 6000 : 3 * 60 * 1000, MAX_ORDERS = 2;
+  // zone = how wide the green part of the gauge is, speed = how fast the marker moves
+  const FISH = [
+    { k: 'fishS', name: 'こざかな', color: '#9cc9e8', price: 8, p: .34, cm: [6, 14], zone: .34, speed: 1 },
+    { k: 'fishG', name: 'きんぎょ', color: '#f47a5a', price: 12, p: .2, cm: [4, 10], zone: .3, speed: 1.15 },
+    { k: 'fishB', name: 'おおきな さかな', color: '#f2a65a', price: 20, p: .16, cm: [20, 40], zone: .26, speed: 1.3 },
+    { k: 'fishK', name: 'こい', color: '#fffaf2', spots: 1, price: 35, p: .1, cm: [30, 60], zone: .22, speed: 1.45 },
+    { k: 'fishN', name: 'なまず', color: '#a39c8f', whisk: 1, price: 45, p: .07, cm: [40, 80], zone: .19, speed: 1.6 },
+    { k: 'fishR', name: 'にじいろ さかな', color: 'url(#rainbow)', price: 80, p: .04, cm: [15, 30], zone: .16, speed: 1.8 },
+    { k: 'boot', name: 'ながぐつ', junk: 1, p: .06, zone: .4, speed: .8 },
+    { k: 'chest', name: 'たからばこ', treasure: 1, p: .03, zone: .18, speed: 1.6 },
+  ];
+  const FURN = [
+    { k: 'bed', name: 'ベッド', price: 40, seat: [[8, -16]] },
+    { k: 'rug', name: 'まるい ラグ', price: 20, under: 1, seat: [[-16, -6], [16, -4]] },
+    { k: 'sofa', name: 'ソファ', price: 50, seat: [[-12, -8], [12, -8]] },
+    { k: 'rtable', name: 'まるテーブル', price: 30 },
+    { k: 'chair', name: 'いす', price: 15, seat: [[0, -10]] },
+    { k: 'cushion', name: 'いちごクッション', price: 12, seat: [[0, -4]], small: 1 },
+    { k: 'lamp', name: 'スタンドライト', price: 20 },
+    { k: 'shelf', name: 'ほんだな', price: 35 },
+    { k: 'plant', name: 'かんようしょくぶつ', price: 15, small: 1 },
+    { k: 'kitchen', name: 'キッチン', price: 60 },
+    { k: 'piano', name: 'ピアノ', price: 90 },
+    { k: 'teaset', name: 'ティーセット', price: 18, small: 1 },
+    { k: 'cakestand', name: 'ケーキスタンド', price: 30, small: 1 },
+    { k: 'clock', name: 'かべどけい', price: 25, wall: 1 },
+    { k: 'drawing', name: 'おえかき（がくぶち）', price: 20, wall: 1 },
+    { k: 'curtain', name: 'カーテンの まど', price: 25, wall: 1 },
+  ];
+  const furnVb = (f) => f.wall ? '-26 -24 52 46' : f.small ? '-24 -40 48 44' : '-44 -64 88 68';
+  const HOMES = {
+    sakura: { name: 'さくら', price: 150, cx: 900 },
+    tonsuke: { name: 'とんすけ', price: 100, cx: 785, roof: '#ffb0c2', wall: '#fff6e4' },
+    shirousa: { name: 'しろうさ', price: 100, cx: 900, roof: '#9fd9b4', wall: '#ffffff', ear: '#ffffff', inner: '#f8c6d4' },
+    chausa: { name: 'ちゃうさ', price: 100, cx: 1015, roof: '#e8b98a', wall: '#fff6e4', ear: '#d9a878', inner: '#f3c3b0' },
+  };
+  const ROOM = {
+    sakura: { w: 400, h: 220, wall: '#fde7ee', paper: '#f8c6d4' },
+    tonsuke: { w: 300, h: 200, wall: '#fff0e0', paper: '#ffd2c0' },
+    shirousa: { w: 300, h: 200, wall: '#eef7f1', paper: '#c9e9d4' },
+    chausa: { w: 300, h: 200, wall: '#f8ecdc', paper: '#ecd0ad' },
+  };
+  const WALL_H = 110;
+  const NAME = { koke: 'コケ', sakura: 'さくら', tonsuke: 'とんすけ', shirousa: 'しろうさ', chausa: 'ちゃうさ' };
+  const ROOM_LINES = {
+    sakura: ['いらっしゃい！ ゆっくりしていってね', 'おへやの かざりつけ、たのしいね', 'みんなで おちゃかい しようよ'],
+    tonsuke: ['ぶひっ、ぼくの おへやへ ようこそ', 'ベッドで ごろごろ するのが すき', 'いちごクッション ほしいな'],
+    shirousa: ['しずかで おちつく おへやでしょ', 'くだものの えを かざりたいな', 'ちゃうさの おうちにも いきたいな'],
+    chausa: ['キッチンで おかしを つくりたいな', 'ケーキの においの する おへや！', 'しろうさ、あそびに きてね'],
+    koke: ['さくらの おうち、ひろいね！', 'ぴよっ、たのしい！', 'おみせは ちょっと おやすみ〜'],
+  };
+  const HOME_THANKS = {
+    sakura: 'わあ、ひろい おうち！ みんなを よんで おちゃかいが できるね',
+    tonsuke: 'ぶひっ、ぼくの おうちだ！ ありがとう！',
+    shirousa: 'まどから かじゅえんが みえるかな？ うれしい！',
+    chausa: 'キッチンを おいて おかしを つくりたいな！',
+  };
+  const DECOS = [
+    { k: 'flower', name: 'おはな', price: 10 }, { k: 'sunflower', name: 'ひまわり', price: 15 },
+    { k: 'mushroom', name: 'きのこ', price: 15 }, { k: 'fence', name: 'さく', price: 20 },
+    { k: 'lantern', name: 'ランタン', price: 30 }, { k: 'bench', name: 'ベンチ', price: 40, play: 1 },
+    { k: 'stone', name: 'いしだたみ', price: 5 }, { k: 'pot', name: 'うえきばち', price: 12 },
+    { k: 'mailbox', name: 'ポスト', price: 25 }, { k: 'tree', name: 'まるい き', price: 30 },
+    { k: 'scarecrow', name: 'かかし', price: 35 }, { k: 'parasol', name: 'パラソル', price: 45 },
+    { k: 'table', name: 'テーブルと いす', price: 50, play: 1 }, { k: 'swing', name: 'ブランコ', price: 80, play: 1 },
+    { k: 'windmill', name: 'ふうしゃ', price: 100 }, { k: 'fountain', name: 'ふんすい', price: 120 },
+    { k: 'sheet', name: 'レジャーシート', price: 20, play: 1 }, { k: 'basket', name: 'ピクニックバスケット', price: 15 },
+    { k: 'bento', name: 'おべんとう', price: 15 }, { k: 'grill', name: 'BBQグリル', price: 60, play: 1 },
+    { k: 'tent', name: 'キャンプの テント', price: 70 }, { k: 'campfire', name: 'たきび', price: 40, play: 1 },
+    { k: 'slide', name: 'すべりだい', price: 90, play: 1 }, { k: 'seesaw', name: 'シーソー', price: 70, play: 1 },
+    { k: 'sandbox', name: 'すなば', price: 50, play: 1 },
+    { k: 'sakuratree', name: 'さくらの き', price: 60, season: 'spring' }, { k: 'tulip', name: 'チューリップ', price: 12, season: 'spring' },
+    { k: 'pool', name: 'ビニールプール', price: 60, season: 'summer', play: 1 }, { k: 'kakigori', name: 'かきごおりやさん', price: 80, season: 'summer' },
+    { k: 'pumpkin', name: 'かぼちゃ', price: 20, season: 'autumn' }, { k: 'leaves', name: 'おちば', price: 8, season: 'autumn' },
+    { k: 'momiji', name: 'もみじの き', price: 60, season: 'autumn' },
+    { k: 'snowman', name: 'ゆきだるま', price: 30, season: 'winter' }, { k: 'xmastree', name: 'クリスマスツリー', price: 100, season: 'winter' },
+  ];
+  const SEASON_NAME = { spring: 'はる', summer: 'なつ', autumn: 'あき', winter: 'ふゆ' };
+  const nowSeason = () => { const m = new Date().getMonth() + 1; return m >= 3 && m <= 5 ? 'spring' : m >= 6 && m <= 8 ? 'summer' : m >= 9 && m <= 11 ? 'autumn' : 'winter'; };
+  const CUSTOMERS = [
+    { k: 'panda', name: 'パンダさん' }, { k: 'kuma', name: 'くまさん' }, { k: 'midori', name: 'みどりうさぎさん' },
+    { k: 'tora', name: 'とらねこさん' }, { k: 'kiiro', name: 'きいろうさぎさん' },
+  ];
+  const APPLE_TREE = 40, APPLE_MS = FAST ? 12000 : 15 * 60 * 1000, APPLE_YIELD = 3, APPLE_PRICE = 20;
+  const GRAPE_VINE = 80, GRAPE_MS = FAST ? 20000 : 60 * 60 * 1000, GRAPE_YIELD = 4, GRAPE_PRICE = 40;
+  const TREE_X = [410, 480, 550, 620], VINE_X = [430, 530, 630];
+  const KEY = 'nekousa-hiroba-v1';
+  const TRAIN_MS = FAST ? 20000 : 20 * 60 * 1000;
+  const QUESTS = [
+    { t: 'berry', n: [9, 18], text: n => `いちごを ${n}こ しゅうかく`, r: n => n * 3, on: () => true },
+    { t: 'egg', n: [3, 6], text: n => `たまごを ${n}こ あつめる`, r: n => n * 6, on: () => S.coop.owned },
+    { t: 'cake', n: [1, 3], text: n => `ケーキを ${n}こ やく`, r: n => n * 25, on: () => S.bakery.owned },
+    { t: 'apple', n: [3, 6], text: n => `りんごを ${n}こ しゅうかく`, r: n => n * 10, on: () => S.orchard.owned },
+    { t: 'grape', n: [4, 8], text: n => `ぶどうを ${n}こ しゅうかく`, r: n => n * 14, on: () => S.orchard.owned },
+    { t: 'fish', n: [2, 5], text: n => `さかなを ${n}ひき つる`, r: n => n * 8, on: () => S.pond.owned },
+    { t: 'order', n: [1, 3], text: n => `ちゅうもんを ${n}かい とどける`, r: n => n * 20, on: () => S.totalSold > 0 },
+    { t: 'train', n: [1, 2], text: n => `れっしゃに ${n}りょう つむ`, r: n => n * 20, on: () => S.coop.owned },
+    { t: 'sell', n: [40, 150], step: 10, text: n => `${n}コインぶん うる`, r: n => n * .4, on: () => true },
+    { t: 'deco', n: [1, 2], text: n => `かざりを ${n}こ おく`, r: n => n * 15, on: () => true },
+    { t: 'pet', n: [3, 6], text: n => `なかまを ${n}かい なでる（タップ）`, r: n => n * 4, on: () => true },
+  ];
+  const COLS = 4, ROWS = 3, PX = 36, PY = 262, PW = 66, PH = 54, GX = 6, GY = 8;
+
+  const freshOrchard = () => ({ owned: false, apples: TREE_X.map(() => ({ p: false, at: null })), grapes: VINE_X.map(() => ({ p: false, at: null })) });
+  const fresh = () => ({
+    coins: 15, stock: 0, totalSold: 0, sakura: 'none', tonsuke: 'none', shirousa: 'none', chausa: 'none',
+    coop: { owned: false, hens: 0, eggs: 0, last: 0 }, eggStock: 0,
+    bakery: { owned: false, at: null }, cakes: 0,
+    orders: [], nextOrderAt: Date.now() + 60000, ordersDone: 0,
+    decos: [], decoInv: {}, pond: { owned: false }, fishS: 0, fishB: 0, fishR: 0, fishBest: {}, seen: {}, mapV: 2, homes: {}, furnInv: {}, train: { cars: null, next: Date.now() + (FAST ? 5000 : 60000) },
+    orchard: freshOrchard(), appleStock: 0, grapeStock: 0,
+    plots: Array.from({ length: COLS * ROWS }, (_, i) => ({ open: i < 4, at: null }))
+  });
+
+  let S = load();
+  if (!S.tonsuke) S.tonsuke = 'none';
+  if (!S.shirousa) S.shirousa = 'none';
+  if (!S.chausa) S.chausa = 'none';
+  if (!S.orders) { S.orders = []; S.nextOrderAt = Date.now() + 20000; S.ordersDone = 0; }
+  if (!S.decos) { S.decos = []; S.decoInv = {}; }
+  if (!S.pond) { S.pond = { owned: false }; S.fishS = 0; S.fishB = 0; S.fishR = 0; }
+  if (!S.coop) S.coop = { owned: false, hens: 0, eggs: 0, last: 0 };
+  if (S.eggStock == null) S.eggStock = 0;
+  if (!S.bakery) S.bakery = { owned: false, at: null };
+  if (S.cakes == null) S.cakes = 0;
+  if (!S.orchard) S.orchard = freshOrchard();
+  if (S.appleStock == null) S.appleStock = 0;
+  if (S.grapeStock == null) S.grapeStock = 0;
+  FISH.forEach(f => { if (f.price && S[f.k] == null) S[f.k] = 0; });
+  if (!S.fishBest) S.fishBest = {};
+  if (!S.homes) S.homes = {};
+  if (!S.train) S.train = { cars: null, next: Date.now() + (FAST ? 5000 : 60000) };
+  if (!S.furnInv) S.furnInv = {};
+  // v6: the village got two new screens after the farm, so things beyond it move right
+  if (!S.mapV) { S.decos.forEach(d => { if (d.x >= 360) d.x += 720; }); S.mapV = 2; }
+  if (!S.seen) {
+    S.seen = {};
+    if (S.totalSold || S.stock) S.seen.stock = 1;
+    if (S.coop.owned) S.seen.eggStock = 1;
+    if (S.cakes || S.bakery.owned) S.seen.cakes = 1;
+    if (S.appleStock || S.orchard.apples.some(t => t.p)) S.seen.appleStock = 1;
+    if (S.grapeStock || S.chausa === 'friend') S.seen.grapeStock = 1;
+  }
+  function load() {
+    const hot = window.claude?.hot?.data;
+    if (hot && hot.plots) return hot;
+    try {
+      const raw = localStorage.getItem(KEY);
+      if (raw) { const s = JSON.parse(raw); if (s && Array.isArray(s.plots)) return s; }
+    } catch (e) {}
+    return fresh();
+  }
+  function save() { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {} }
+  window.claude?.hot?.snapshot?.(() => S);
+
+  const $ = (id) => document.getElementById(id);
+  const NS = 'http://www.w3.org/2000/svg';
+  const price = () => BASE_PRICE + (S.sakura === 'friend' ? 1 : 0);
+  const growMs = () => GROW_MS * (S.tonsuke === 'friend' ? 0.8 : 1);
+  const progress = (p) => p.at == null ? -1 : Math.min(1, (Date.now() - p.at) / growMs());
+  const treeMs = (kind) => (kind === 'a' ? APPLE_MS : GRAPE_MS) * (S.shirousa === 'friend' ? 0.8 : 1);
+  const bakeMs = () => BAKE_MS * (S.chausa === 'friend' ? 0.6 : 1);
+  const treeProg = (t, kind) => !t.p || t.at == null ? -1 : Math.min(1, (Date.now() - t.at) / treeMs(kind));
+  const slotOf = (code) => (code[0] === 'a' ? S.orchard.apples : S.orchard.grapes)[+code.slice(1)];
+  const GOODS = {
+    stock: { name: 'いちご', icon: '<use href="#berry" transform="scale(1.5)"/>', unit: () => price(), on: () => true },
+    eggStock: { name: 'たまご', icon: '<use href="#egg" transform="scale(1.5)"/>', unit: () => EGG_PRICE, on: () => S.coop.owned },
+    appleStock: { name: 'りんご', icon: '<use href="#apple" transform="scale(1.5)"/>', unit: () => APPLE_PRICE, on: () => S.orchard.owned },
+    grapeStock: { name: 'ぶどう', icon: '<use href="#grape" transform="scale(1.4) translate(0,1)"/>', unit: () => GRAPE_PRICE, on: () => S.orchard.owned },
+    cakes: { name: 'いちごケーキ', icon: '<use href="#cake" transform="scale(1.3)"/>', unit: () => CAKE_PRICE, on: () => S.bakery.owned },
+  };
+  FISH.filter(f => f.price).forEach(f => { GOODS[f.k] = { name: f.name, icon: fishIcon(f, 'scale(1.1)'), unit: () => f.price, on: () => S.pond.owned }; });
+  const away = (who) => (S.homes?.sakura?.guests || []).includes(who);
+  const see = (k) => { S.seen[k] = 1; };
+  const canBake = () => S.stock >= CAKE_BERRIES && S.eggStock >= CAKE_EGGS;
+  const bakeLeft = () => S.bakery.at == null ? null : bakeMs() - (Date.now() - S.bakery.at);
+  const eggLeft = () => EGG_MS - (Date.now() - S.coop.last);
+  // eggs pile up in the coop while you are away, up to 3 per hen
+  function tickEggs() {
+    const c = S.coop;
+    if (!c.owned) return false;
+    const cap = c.hens * EGG_CAP;
+    if (c.eggs >= cap) { c.last = Date.now(); return false; }
+    const n = Math.floor((Date.now() - c.last) / EGG_MS);
+    if (n <= 0) return false;
+    c.eggs = Math.min(cap, c.eggs + n * c.hens);
+    c.last = c.eggs >= cap ? Date.now() : c.last + n * EGG_MS;
+    return true;
+  }
+  const nextPlotPrice = () => PLOT_PRICES[S.plots.filter(p => p.open).length - 4] ?? null;
+
+  // ---------- characters (drawn from the children's pictures) ----------
+  function koke() {
+    // もちふわ：平たい大福みたいなひよこ
+    return `
+      <ellipse cx="0" cy="15.5" rx="19" ry="2.6" fill="url(#shadowG)"/>
+      <ellipse cx="-6" cy="14.5" rx="3" ry="1.6" fill="#f2a65a"/><ellipse cx="6" cy="14.5" rx="3" ry="1.6" fill="#f2a65a"/>
+      <path d="M-21,7 C-22,-6 -12,-15 0,-15 C12,-15 22,-6 21,7 C20,13.5 11,15 0,15 C-11,15 -20,13.5 -21,7Z" fill="#fffdf8" stroke="#6b564a" stroke-width="1.5" stroke-linejoin="round"/>
+      <ellipse cx="-7" cy="-8" rx="7" ry="3" fill="#fff" opacity=".9"/>
+      <g class="tuft" style="transform-origin:0px -14.6px"><path d="M-1,-14.6 C-2.5,-18.5 2,-19.5 1.6,-16.4" fill="none" stroke="#6b564a" stroke-width="1.3" stroke-linecap="round"/></g>
+      <g class="wing" style="transform-origin:-19px 7px"><path d="M-20,5 C-23,6 -22,11 -18.5,10" fill="#f9e7a0" stroke="#6b564a" stroke-width="1.2" stroke-linecap="round"/></g>
+      <circle cx="-7.5" cy="-1.5" r="1.6" fill="#4a3b33"/><circle cx="7.5" cy="-1.5" r="1.6" fill="#4a3b33"/>
+      <path d="M-2,1.6 Q0,0.6 2,1.6 Q0.8,4 0,4 Q-0.8,4 -2,1.6Z" fill="#f08a4b" stroke="#6b564a" stroke-width=".9" stroke-linejoin="round"/>
+      <ellipse cx="-12.5" cy="3.5" rx="3.2" ry="1.9" fill="#ffb3a6" opacity=".75"/>
+      <ellipse cx="12.5" cy="3.5" rx="3.2" ry="1.9" fill="#ffb3a6" opacity=".75"/>`;
+  }
+  function sakura() {
+    // さくらもようの しろねこ（ひとつながりの まるいからだ）
+    return `
+      <ellipse cx="0" cy="19.5" rx="18" ry="2.6" fill="url(#shadowG)"/>
+      <g class="tail" style="transform-origin:17px 12px"><path d="M17,12 C24,12 27,5 24,1" fill="none" stroke="#6b564a" stroke-width="5" stroke-linecap="round"/>
+      <path d="M17,12 C24,12 27,5 24,1" fill="none" stroke="#f6c3d5" stroke-width="3" stroke-linecap="round"/></g>
+      <path d="M-19,12 C-21,0 -20,-9 -17,-13 C-18.5,-18 -17,-23.5 -14,-23.5 C-11.5,-23.5 -8,-20 -6,-17.5 C-2,-18.5 2,-18.5 6,-17.5 C8,-20 11.5,-23.5 14,-23.5 C17,-23.5 18.5,-18 17,-13 C20,-9 21,0 19,12 C18,17.5 10,19 0,19 C-10,19 -18,17.5 -19,12Z" fill="#fff" stroke="#6b564a" stroke-width="1.5" stroke-linejoin="round"/>
+      <path d="M-14.5,-15.5 C-15.5,-19 -14.5,-21.3 -13,-21 C-11.5,-20.7 -10,-18.8 -9.2,-17.6Z M14.5,-15.5 C15.5,-19 14.5,-21.3 13,-21 C11.5,-20.7 10,-18.8 9.2,-17.6Z" fill="#f6c3d5"/>
+      <g transform="translate(11,12) scale(.7) rotate(20)">${blossom('#f0a7c2')}</g>
+      <g transform="translate(10,-12) scale(.6) rotate(-15)">${blossom('#f0a7c2')}</g>
+      <g transform="translate(1,15) scale(.45)">${blossom('#f6c3d5')}</g>
+      <circle cx="-7" cy="-4" r="1.7" fill="#4a3b33"/><circle cx="7" cy="-4" r="1.7" fill="#4a3b33"/>
+      <path d="M-1.3,-0.6 L1.3,-0.6 L0,0.9Z" fill="#e98bb0"/>
+      <path d="M0,0.9 C-0.4,3 -2.6,3 -3,1.8 M0,0.9 C0.4,3 2.6,3 3,1.8" fill="none" stroke="#c4507a" stroke-width="1" stroke-linecap="round"/>
+      <path d="M-12,-1 h-6 M-12,2 l-5.5,1.4 M12,-1 h6 M12,2 l5.5,1.4" stroke="#d98aa8" stroke-width=".9" stroke-linecap="round"/>
+      <ellipse cx="-11.5" cy="2.5" rx="2.6" ry="1.5" fill="#ffc2d4" opacity=".7"/>
+      <ellipse cx="11.5" cy="2.5" rx="2.6" ry="1.5" fill="#ffc2d4" opacity=".7"/>`;
+  }
+  function blossom(c) {
+    // さくらの花びら（先がちょっと割れている）×5
+    const pet = 'M0,0 C-3.2,-2.6 -3.4,-6.6 -1.3,-7.6 L0,-6.6 L1.3,-7.6 C3.4,-6.6 3.2,-2.6 0,0Z';
+    let g = '';
+    for (let k = 0; k < 5; k++) g += `<path d="${pet}" transform="rotate(${k * 72})" fill="${c}" stroke="#d47a9c" stroke-width=".5"/>`;
+    return g + `<circle r="1.1" fill="#fff3b0"/>`;
+  }
+  function petal(c) {
+    return `<g fill="${c}" stroke="#c4507a" stroke-width=".8"><circle cx="0" cy="-3" r="2.6"/><circle cx="2.9" cy="-.9" r="2.6"/><circle cx="1.8" cy="2.5" r="2.6"/><circle cx="-1.8" cy="2.5" r="2.6"/><circle cx="-2.9" cy="-.9" r="2.6"/></g><circle r="1.4" fill="#fff6c0"/>`;
+  }
+  function tonsuke() {
+    // ピンクのまるいぶた
+    return `
+      <ellipse cx="0" cy="17.5" rx="18" ry="2.6" fill="url(#shadowG)"/>
+      <g class="tail" style="transform-origin:19px 6px"><path d="M19,6 c5,-1 6,4 2.5,4.5 c-2.5,.3 -2,-3 .5,-2.5" fill="none" stroke="#6b564a" stroke-width="1.3" stroke-linecap="round"/></g>
+      <path d="M-21,4 C-22,-9 -12,-16 0,-16 C12,-16 22,-9 21,4 C20,14 11,17 0,17 C-11,17 -20,14 -21,4Z" fill="#ffc6d3" stroke="#6b564a" stroke-width="1.5"/>
+      <path d="M-15,-10 C-19,-14 -18,-20 -13,-19 C-10,-18.5 -8,-15 -8,-13.5Z M15,-10 C19,-14 18,-20 13,-19 C10,-18.5 8,-15 8,-13.5Z" fill="#ffb0c2" stroke="#6b564a" stroke-width="1.4" stroke-linejoin="round"/>
+      <ellipse cx="-7" cy="-9" rx="6" ry="2.6" fill="#ffe0e8" opacity=".9"/>
+      <circle cx="-8" cy="-3" r="1.7" fill="#4a3b33"/><circle cx="8" cy="-3" r="1.7" fill="#4a3b33"/>
+      <ellipse cx="0" cy="3.5" rx="6.2" ry="4.2" fill="#ff9fb6" stroke="#6b564a" stroke-width="1.2"/>
+      <ellipse cx="-2.2" cy="3.5" rx="1" ry="1.5" fill="#c4507a"/><ellipse cx="2.2" cy="3.5" rx="1" ry="1.5" fill="#c4507a"/>
+      <ellipse cx="-13.5" cy="4" rx="3" ry="1.8" fill="#ff8fab" opacity=".55"/>
+      <ellipse cx="13.5" cy="4" rx="3" ry="1.8" fill="#ff8fab" opacity=".55"/>
+      <ellipse cx="-8" cy="15.6" rx="3.2" ry="1.7" fill="#ffb0c2" stroke="#6b564a" stroke-width="1"/>
+      <ellipse cx="8" cy="15.6" rx="3.2" ry="1.7" fill="#ffb0c2" stroke="#6b564a" stroke-width="1"/>`;
+  }
+  function hen() {
+    return `
+      <ellipse cx="0" cy="12.5" rx="13" ry="2" fill="url(#shadowG)"/>
+      <path d="M11,1 L17,-4 L15.5,4Z" fill="#fff" stroke="#6b564a" stroke-width="1.2" stroke-linejoin="round"/>
+      <path d="M-13,4 C-14,-6 -7,-12 0,-12 C8,-12 14,-5 13,4 C12,10 6,12 0,12 C-6,12 -12,10 -13,4Z" fill="#fff" stroke="#6b564a" stroke-width="1.4"/>
+      <path d="M-4,-11.4 C-5,-15.5 -1.5,-16.5 -1,-13.5 C-.5,-17 3.5,-16.5 2.6,-12.8 C4.6,-14.2 6.4,-12 4.2,-10.6Z" fill="#f06a6a" stroke="#6b564a" stroke-width="1" stroke-linejoin="round"/>
+      <circle cx="-4" cy="-4" r="1.3" fill="#4a3b33"/><circle cx="4" cy="-4" r="1.3" fill="#4a3b33"/>
+      <path d="M-1.6,-1.4 L1.6,-1.4 L0,1.4Z" fill="#f7c948" stroke="#6b564a" stroke-width=".7" stroke-linejoin="round"/>
+      <ellipse cx="0" cy="3" rx="1.2" ry="1.7" fill="#f06a6a"/>
+      <path d="M-9,3 C-9,7.5 -4,8.5 -2.5,5.5" fill="none" stroke="#6b564a" stroke-width="1.1" stroke-linecap="round"/>
+      <path d="M-4,12 v2 M4,12 v2" stroke="#f2a65a" stroke-width="1.6" stroke-linecap="round"/>`;
+  }
+  function lockedSign(cx, cy, title, sub, aria, id) {
+    return `<g id="${id}" class="tap" tabindex="0" role="button" aria-label="${aria}">
+      <rect class="focus-ring" x="${cx - 42}" y="${cy - 46}" width="84" height="92" rx="14" fill="#e5f1cc" stroke="#9cb977" stroke-width="2" stroke-dasharray="5 4"/>
+      <rect x="${cx - 3}" y="${cy - 4}" width="6" height="34" rx="2" fill="#c99a6e" stroke="#4a3b33" stroke-width="1.4"/>
+      <rect x="${cx - 34}" y="${cy - 30}" width="68" height="32" rx="7" fill="#fff6e4" stroke="#4a3b33" stroke-width="1.6"/>
+      <text x="${cx}" y="${cy - 17}" text-anchor="middle" font-family="Yusei Magic, Zen Maru Gothic, sans-serif" font-size="10" fill="#4a3b33">${title}</text>
+      <text x="${cx}" y="${cy - 5}" text-anchor="middle" font-family="Zen Maru Gothic, sans-serif" font-weight="700" font-size="9" fill="#6c8a4b">${sub}</text></g>`;
+  }
+  function coopSvg() {
+    const c = S.coop;
+    if (!c.owned) return lockedSign(53, 146, 'にわとりごや', `${COOP_PRICE}コイン`, `にわとりごやを たてる ${COOP_PRICE}コイン`, 'coopTap');
+    let eggs = '';
+    for (let k = 0; k < Math.min(c.eggs, 9); k++) eggs += `<use href="#egg" transform="translate(${22 + (k % 5) * 6},${183 - Math.floor(k / 5) * 5}) scale(.8)"/>`;
+    const spots = [[100, 180], [12, 192], [98, 158]];
+    let hens = '';
+    for (let k = 0; k < c.hens; k++) hens += `<g transform="translate(${spots[k][0]},${spots[k][1]}) scale(.85)"><g class="${k % 2 ? 'bob' : 'squish'}">${hen()}</g></g>`;
+    return `<g id="coopTap" class="tap" tabindex="0" role="button" aria-label="にわとりごや たまご ${c.eggs}こ">
+      <rect class="focus-ring" x="8" y="90" width="92" height="116" rx="14" fill="transparent"/>
+      <ellipse cx="58" cy="178" rx="50" ry="7" fill="url(#shadowG)"/>
+      <rect x="18" y="124" width="70" height="52" rx="5" fill="#fff6e4" stroke="#4a3b33" stroke-width="1.8"/>
+      <rect x="19" y="125" width="68" height="50" rx="4" fill="url(#wallShade)"/><rect x="19" y="125" width="68" height="50" rx="4" fill="url(#aoG)"/>
+      <path d="M12,128 L53,95 L94,128Z" fill="#f6a5a0" stroke="#4a3b33" stroke-width="1.8" stroke-linejoin="round"/>
+      <path d="M13,127.5 L53,96 L93,127.5Z" fill="url(#roofLight)"/>
+      <path d="M19,129 H87 V134 C60,131 40,131 19,134Z" fill="#7a5236" opacity=".12"/>
+      <g fill="#f48f8a"><circle cx="40" cy="117" r="2.6"/><circle cx="62" cy="111" r="2.6"/><circle cx="72" cy="121" r="2.6"/></g>
+      <circle cx="53" cy="114" r="5.5" fill="#cfeaf7" stroke="#4a3b33" stroke-width="1.4"/>
+      <rect x="26" y="130" width="54" height="14" rx="5" fill="#fff" stroke="#4a3b33" stroke-width="1.3"/>
+      <text x="53" y="140.5" text-anchor="middle" font-family="Yusei Magic, Zen Maru Gothic, sans-serif" font-size="8.5" fill="#d9534f">にわとりごや</text>
+      <path d="M42,176 V158 C42,150 64,150 64,158 V176Z" fill="#c99a6e" stroke="#4a3b33" stroke-width="1.6"/>
+      <path d="M16,178 C16,186 46,186 46,178Z" fill="#e8b98a" stroke="#4a3b33" stroke-width="1.4"/>
+      ${eggs}${hens}
+      ${c.eggs ? `<g class="twinkle"><path d="M40,166 l1.6,4 l4,1.6 l-4,1.6 l-1.6,4 l-1.6,-4 l-4,-1.6 l4,-1.6Z" fill="#fff6a8" stroke="#e0b84a" stroke-width=".7"/></g>` : ''}</g>`;
+  }
+  function bakerySvg() {
+    const b = S.bakery;
+    if (!b.owned) return lockedSign(309, 146, 'にゃんケーキ', S.coop.owned ? `${BAKERY_PRICE}コイン` : 'にわとりごやの つぎ', `にゃんケーキを たてる ${BAKERY_PRICE}コイン`, 'bakeryTap');
+    const left = bakeLeft();
+    let status = '';
+    if (left != null && left <= 0) {
+      status = `<g class="bob"><circle cx="309" cy="78" r="13" fill="#fff" stroke="#4a3b33" stroke-width="1.4"/><use href="#cake" transform="translate(309,79) scale(1.15)"/></g>
+        <g class="twinkle"><path d="M326,68 l1.6,4 l4,1.6 l-4,1.6 l-1.6,4 l-1.6,-4 l-4,-1.6 l4,-1.6Z" fill="#fff6a8" stroke="#e0b84a" stroke-width=".7"/></g>`;
+    } else if (left != null) {
+      const pr = 1 - left / bakeMs();
+      status = `<rect x="287" y="80" width="44" height="6" rx="3" fill="#e9d6c3" stroke="#4a3b33" stroke-width="1"/>
+        <rect x="287" y="80" width="${44 * pr}" height="6" rx="3" fill="#f6b3c4"/>
+        <g class="bob" opacity=".8"><path d="M300,74 q-3,-4 0,-8 q3,-4 0,-8 M318,74 q-3,-4 0,-8 q3,-4 0,-8" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round"/></g>`;
+    }
+    return `<g id="bakeryTap" class="tap" tabindex="0" role="button" aria-label="にゃんケーキ">
+      <rect class="focus-ring" x="262" y="56" width="94" height="128" rx="14" fill="transparent"/>
+      <ellipse cx="315" cy="179" rx="52" ry="7" fill="url(#shadowG)"/>
+      <rect x="272" y="128" width="74" height="50" rx="5" fill="#fff1f4" stroke="#4a3b33" stroke-width="1.8"/>
+      <rect x="273" y="129" width="72" height="48" rx="4" fill="url(#wallShade)"/><rect x="273" y="129" width="72" height="48" rx="4" fill="url(#aoG)"/>
+      <path d="M266,131 L272,104 L278,91 L289,104 L329,104 L340,91 L346,104 L352,131Z" fill="#c99a6e" stroke="#4a3b33" stroke-width="1.8" stroke-linejoin="round"/>
+      <path d="M267,130 L272.8,104.5 L278,92.5 L289,105 L329,105 L340,92.5 L345.2,104.5 L351,130Z" fill="url(#roofLight)"/>
+      <path d="M268,123 Q274,129 280,123 Q286,129 292,123 Q298,129 304,123 Q310,129 316,123 Q322,129 328,123 Q334,129 340,123 Q346,129 351,123 L352,131 L266,131Z" fill="#fff8ee" stroke="#4a3b33" stroke-width="1.2" stroke-linejoin="round"/>
+      <path d="M279.5,99 L278,94 L284,100Z M338.5,99 L340,94 L334,100Z" fill="#f6b3c4"/>
+      <circle cx="301" cy="113" r="1.6" fill="#4a3b33"/><circle cx="317" cy="113" r="1.6" fill="#4a3b33"/>
+      <path d="M306,116 Q309,119 309,116 Q309,119 312,116" fill="none" stroke="#4a3b33" stroke-width="1.1" stroke-linecap="round"/>
+      <rect x="282" y="134" width="54" height="14" rx="5" fill="#fff" stroke="#4a3b33" stroke-width="1.3"/>
+      <text x="309" y="144.5" text-anchor="middle" font-family="Yusei Magic, Zen Maru Gothic, sans-serif" font-size="8.5" fill="#a0673e">にゃんケーキ</text>
+      <rect x="279" y="152" width="24" height="18" rx="4" fill="#cfeaf7" stroke="#4a3b33" stroke-width="1.4"/>
+      <use href="#cake" transform="translate(291,163) scale(.8)"/>
+      <path d="M311,178 V160 C311,152 333,152 333,160 V178Z" fill="#f6b3c4" stroke="#4a3b33" stroke-width="1.6"/>
+      ${status}</g>`;
+  }
+  function treeSvg(t, i) {
+    const x = TREE_X[i], y = 128, pr = treeProg(t, 'a');
+    if (!t.p) return `<g class="tap" data-tree="a${i}" tabindex="0" role="button" aria-label="りんごの なえを うえる ${APPLE_TREE}コイン">
+      <ellipse class="focus-ring" cx="${x}" cy="${y + 20}" rx="28" ry="14" fill="#e5f1cc" stroke="#9cb977" stroke-width="2" stroke-dasharray="5 4"/>
+      <text x="${x}" y="${y + 18}" text-anchor="middle" font-size="16" font-weight="700" fill="#7f9c5c" font-family="Zen Maru Gothic, sans-serif">＋</text>
+      <text x="${x}" y="${y + 30}" text-anchor="middle" font-size="8.5" font-weight="700" fill="#6c8a4b" font-family="Zen Maru Gothic, sans-serif">りんご ${APPLE_TREE}</text></g>`;
+    const ripe = pr >= 1;
+    let fruit = '';
+    if (ripe) [[-12, -8], [8, -14], [12, 2], [-4, 4], [-14, -20], [2, -24]].forEach(([dx, dy]) => fruit += `<use href="#apple" transform="translate(${x + dx},${y + dy}) scale(.9)"/>`);
+    else if (pr >= 0.5) [[-10, -6], [9, -12], [3, 2]].forEach(([dx, dy]) => fruit += `<circle cx="${x + dx}" cy="${y + dy}" r="2.6" fill="#bfe08e" stroke="#4a3b33" stroke-width=".7"/>`);
+    const bar = !ripe ? `<rect x="${x - 18}" y="${y + 36}" width="36" height="5" rx="2.5" fill="#a77b53"/><rect x="${x - 18}" y="${y + 36}" width="${36 * Math.max(0, pr)}" height="5" rx="2.5" fill="#b9ec8f"/>` : '';
+    return `<g class="tap" data-tree="a${i}" tabindex="0" role="button" aria-label="${ripe ? 'りんごを しゅうかく' : 'りんごの き'}">
+      <ellipse cx="${x + 6}" cy="${y + 32}" rx="26" ry="6" fill="url(#shadowG)"/>
+      <path d="M${x - 5},${y + 4} C${x - 4.5},${y + 16} ${x - 5.5},${y + 26} ${x - 7},${y + 32} H${x + 7} C${x + 5.5},${y + 26} ${x + 4.5},${y + 16} ${x + 5},${y + 4}Z" fill="url(#trunkG)" stroke="#4a3b33" stroke-width="1.6" stroke-linejoin="round"/>
+      <g class="sway"><circle class="focus-ring" cx="${x}" cy="${y - 8}" r="24" fill="url(#leafG)" stroke="#4a3b33" stroke-width="1.8"/>
+      <path d="M${x - 18},${y + 4} C${x - 6},${y + 14} ${x + 12},${y + 11} ${x + 21},${y - 2} C${x + 18},${y + 12} ${x + 4},${y + 18} ${x - 8},${y + 15} C${x - 13},${y + 13} ${x - 16},${y + 9} ${x - 18},${y + 4}Z" fill="#5f9a52" opacity=".28"/>
+      <ellipse cx="${x - 9}" cy="${y - 20}" rx="8" ry="4.5" fill="#e2f4cf" opacity=".75" transform="rotate(-28 ${x - 9} ${y - 20})"/>${fruit}</g>
+      ${ripe ? `<g class="twinkle"><path d="M${x + 22},${y - 30} l2,5 l5,2 l-5,2 l-2,5 l-2,-5 l-5,-2 l5,-2Z" fill="#fff6a8" stroke="#e0b84a" stroke-width=".8"/></g>` : ''}${bar}</g>`;
+  }
+  function vineSvg(t, i) {
+    const x = VINE_X[i], y = 330, pr = treeProg(t, 'g');
+    const frame = `<path d="M${x - 34},${y + 30} V${y - 22} M${x + 34},${y + 30} V${y - 22} M${x - 40},${y - 22} H${x + 40}" stroke="#a7784f" stroke-width="5" stroke-linecap="round"/>
+      <path d="M${x - 34},${y + 30} V${y - 22} M${x + 34},${y + 30} V${y - 22} M${x - 40},${y - 22} H${x + 40}" stroke="#c99a6e" stroke-width="2.6" stroke-linecap="round"/>`;
+    if (!t.p) return `<g class="tap" data-tree="g${i}" tabindex="0" role="button" aria-label="ぶどうの なえを うえる ${GRAPE_VINE}コイン">
+      ${frame}<rect class="focus-ring" x="${x - 26}" y="${y - 10}" width="52" height="34" rx="10" fill="#e5f1cc" stroke="#9cb977" stroke-width="2" stroke-dasharray="5 4"/>
+      <text x="${x}" y="${y + 6}" text-anchor="middle" font-size="16" font-weight="700" fill="#7f9c5c" font-family="Zen Maru Gothic, sans-serif">＋</text>
+      <text x="${x}" y="${y + 19}" text-anchor="middle" font-size="8.5" font-weight="700" fill="#6c8a4b" font-family="Zen Maru Gothic, sans-serif">ぶどう ${GRAPE_VINE}</text></g>`;
+    const ripe = pr >= 1;
+    let leaves = '';
+    [-28, -14, 0, 14, 28].forEach((dx, k) => leaves += `<ellipse cx="${x + dx}" cy="${y - 20 + (k % 2) * 4}" rx="10" ry="7" fill="${k % 2 ? '#94d07c' : '#86c870'}" stroke="#4a3b33" stroke-width="1.2"/>`);
+    let fruit = '';
+    if (ripe) [-22, -2, 18].forEach((dx, k) => fruit += `<use href="#grape" transform="translate(${x + dx},${y - 4 + (k % 2) * 4}) scale(1.25)"/>`);
+    else if (pr >= 0.5) [-20, 0, 20].forEach(dx => fruit += `<g transform="translate(${x + dx},${y - 8})" fill="#cde3a0" stroke="#4a3b33" stroke-width=".6"><circle cx="-2" cy="0" r="1.8"/><circle cx="2" cy="0" r="1.8"/><circle cx="0" cy="3" r="1.8"/></g>`);
+    const bar = !ripe ? `<rect x="${x - 20}" y="${y + 36}" width="40" height="5" rx="2.5" fill="#a77b53"/><rect x="${x - 20}" y="${y + 36}" width="${40 * Math.max(0, pr)}" height="5" rx="2.5" fill="#b9ec8f"/>` : '';
+    return `<g class="tap" data-tree="g${i}" tabindex="0" role="button" aria-label="${ripe ? 'ぶどうを しゅうかく' : 'ぶどうの つる'}">
+      <rect class="focus-ring" x="${x - 40}" y="${y - 30}" width="80" height="76" rx="10" fill="transparent"/>
+      ${frame}<g class="sway">${leaves}${fruit}</g>
+      ${ripe ? `<g class="twinkle"><path d="M${x + 30},${y - 36} l2,5 l5,2 l-5,2 l-2,5 l-2,-5 l-5,-2 l5,-2Z" fill="#fff6a8" stroke="#e0b84a" stroke-width=".8"/></g>` : ''}${bar}</g>`;
+  }
+  function orchardSvg() {
+    const o = S.orchard;
+    const sign = `<rect x="500" y="40" width="80" height="24" rx="8" fill="#fff6e4" stroke="#4a3b33" stroke-width="1.8"/>
+      <text x="540" y="57" text-anchor="middle" font-family="Yusei Magic, Zen Maru Gothic, sans-serif" font-size="13" fill="#5f9e4a">かじゅえん</text>`;
+    if (!o.owned) {
+      return `<use href="#tree" x="420" y="120"/><use href="#tree" x="650" y="140"/><use href="#tree" x="470" y="340"/><use href="#tree" x="640" y="380"/>
+        <g id="landTap" class="tap" tabindex="0" role="button" aria-label="となりの とちを かう ${LAND_PRICE}コイン">
+        <rect x="362" y="2" width="356" height="636" fill="#fdf6e9" opacity=".72"/>
+        <rect class="focus-ring" x="440" y="168" width="200" height="120" rx="18" fill="#fffdf7" stroke="#4a3b33" stroke-width="2"/>
+        <text x="540" y="200" text-anchor="middle" font-family="Yusei Magic, Zen Maru Gothic, sans-serif" font-size="16" fill="#4a3b33">となりの とち</text>
+        <text x="540" y="222" text-anchor="middle" font-family="Zen Maru Gothic, sans-serif" font-weight="700" font-size="11" fill="#8a776a">りんごと ぶどうが そだつ かじゅえん</text>
+        <rect x="480" y="236" width="120" height="34" rx="12" fill="#ef5b6b" stroke="#4a3b33" stroke-width="2"/>
+        <text x="540" y="258" text-anchor="middle" font-family="Zen Maru Gothic, sans-serif" font-weight="700" font-size="13" fill="#fff">${LAND_PRICE}コインで かう</text></g>`;
+    }
+    return sign + o.apples.map(treeSvg).join('') + o.grapes.map(vineSvg).join('');
+  }
+  function fluff(rx, ry, cy, n) {
+    // a soft scalloped outline, like a fluffy coat
+    let d = '';
+    for (let k = 0; k <= n; k++) {
+      const a = (k / n) * Math.PI * 2 - Math.PI / 2;
+      const x = Math.cos(a) * rx, y = cy + Math.sin(a) * ry;
+      if (k === 0) { d += `M${x.toFixed(1)},${y.toFixed(1)}`; continue; }
+      const m = a - Math.PI / n;
+      d += ` Q${(Math.cos(m) * rx * 1.06).toFixed(1)},${(cy + Math.sin(m) * ry * 1.06).toFixed(1)} ${x.toFixed(1)},${y.toFixed(1)}`;
+    }
+    return d + 'Z';
+  }
+  function rabbit(fur, ear, muzzle) {
+    return `
+      <ellipse cx="0" cy="19.5" rx="18" ry="2.6" fill="url(#shadowG)"/>
+      <g transform="rotate(-10 -6 -12)"><g class="ear-l" style="transform-origin:-6px -12px"><ellipse cx="-6" cy="-22" rx="4.6" ry="11" fill="${fur}" stroke="#6b564a" stroke-width="1.4"/><ellipse cx="-6" cy="-21" rx="2.2" ry="7" fill="${ear}"/></g></g>
+      <g transform="rotate(10 6 -12)"><g class="ear-r" style="transform-origin:6px -12px"><ellipse cx="6" cy="-22" rx="4.6" ry="11" fill="${fur}" stroke="#6b564a" stroke-width="1.4"/><ellipse cx="6" cy="-21" rx="2.2" ry="7" fill="${ear}"/></g></g>
+      <path d="${fluff(19, 17.5, 1.5, 20)}" fill="${fur}" stroke="#6b564a" stroke-width="1.4" stroke-linejoin="round"/>
+      ${muzzle ? `<ellipse cx="0" cy="4" rx="7" ry="5" fill="${muzzle}"/>` : ''}
+      <circle cx="-6.5" cy="-1" r="1.7" fill="#4a3b33"/><circle cx="6.5" cy="-1" r="1.7" fill="#4a3b33"/>
+      <ellipse cx="0" cy="2.4" rx="1.4" ry="1" fill="#e98bb0"/>
+      <path d="M0,3.4 C-.4,5.4 -2.6,5.4 -3,4.2 M0,3.4 C.4,5.4 2.6,5.4 3,4.2" fill="none" stroke="#8a5a4a" stroke-width="1" stroke-linecap="round"/>
+      <ellipse cx="-11.5" cy="4" rx="2.8" ry="1.6" fill="#ffb8c8" opacity=".7"/>
+      <ellipse cx="11.5" cy="4" rx="2.8" ry="1.6" fill="#ffb8c8" opacity=".7"/>
+      <ellipse cx="-7" cy="18.4" rx="3.6" ry="2" fill="${fur}" stroke="#6b564a" stroke-width="1"/>
+      <ellipse cx="7" cy="18.4" rx="3.6" ry="2" fill="${fur}" stroke="#6b564a" stroke-width="1"/>`;
+  }
+  const shirousa = () => rabbit('#ffffff', '#f8c6d4', null);
+  const chausa = () => rabbit('#d9a878', '#f3c3b0', '#f6e3c8');
+  // キラキラおめめ：黒目を少し大きくして、白いハイライトを2つ
+  function sparkle(svg) {
+    const dur = (4.2 + Math.random() * 2.6).toFixed(1), del = (-Math.random() * 6).toFixed(1);
+    return svg.replace(/<circle cx="(-?[\d.]+)" cy="(-?[\d.]+)" r="([\d.]+)" fill="#4a3b33"\/>/g, (m, x, y, r) => {
+      x = +x; y = +y; r = +r * 1.3;
+      const f = (n) => n.toFixed(2);
+      return `<g class="eye" style="animation-delay:${del}s"><g class="open" style="animation-duration:${dur}s;animation-delay:${del}s">` +
+        `<circle cx="${f(x)}" cy="${f(y)}" r="${f(r)}" fill="#3d2f29"/>` +
+        `<circle cx="${f(x + r * .35)}" cy="${f(y - r * .38)}" r="${f(r * .42)}" fill="#fff"/>` +
+        `<circle cx="${f(x - r * .36)}" cy="${f(y + r * .34)}" r="${f(r * .18)}" fill="#fff"/></g>` +
+        `<path class="joy" d="M${f(x - r)},${f(y + r * .35)} Q${f(x)},${f(y - r * 1.4)} ${f(x + r)},${f(y + r * .35)}" fill="none" stroke="#3d2f29" stroke-width="${f(r * .6)}" stroke-linecap="round"/></g>`;
+    });
+  }
+  { const k = koke, sa = sakura, t = tonsuke, h = hen, rb = rabbit;
+    koke = () => sparkle(k()); sakura = () => sparkle(sa()); tonsuke = () => sparkle(t());
+    rabbit = (...a) => sparkle(rb(...a)); }
+  function customerSvg(k) {
+    const eye = (x) => `<circle cx="${x}" cy="-1" r="1.7" fill="#4a3b33"/>`;
+    const blush = `<ellipse cx="-10" cy="4" rx="2.6" ry="1.5" fill="#ffb3b8" opacity=".7"/><ellipse cx="10" cy="4" rx="2.6" ry="1.5" fill="#ffb3b8" opacity=".7"/>`;
+    const mouth = `<path d="M-2,3 Q0,5 2,3" fill="none" stroke="#4a3b33" stroke-width="1" stroke-linecap="round"/>`;
+    const head = (fill) => `<ellipse cx="0" cy="1" rx="15" ry="13" fill="${fill}" stroke="#6b564a" stroke-width="1.5"/>`;
+    let g = '';
+    if (k === 'panda') g = `<circle cx="-11" cy="-10" r="5" fill="#4a3b33"/><circle cx="11" cy="-10" r="5" fill="#4a3b33"/>${head('#fff')}
+      <ellipse cx="-6" cy="-1" rx="3.6" ry="3" fill="#4a3b33" transform="rotate(-20 -6 -1)"/><ellipse cx="6" cy="-1" rx="3.6" ry="3" fill="#4a3b33" transform="rotate(20 6 -1)"/>
+      <circle cx="-6" cy="-1.4" r="1" fill="#fff"/><circle cx="6" cy="-1.4" r="1" fill="#fff"/>${mouth}${blush}`;
+    else if (k === 'kuma') g = `<circle cx="-11" cy="-10" r="5" fill="#c99a6e" stroke="#6b564a" stroke-width="1.3"/><circle cx="11" cy="-10" r="5" fill="#c99a6e" stroke="#6b564a" stroke-width="1.3"/>${head('#d8ad80')}
+      <ellipse cx="0" cy="4" rx="6" ry="4" fill="#f3dcc0"/>${eye(-6)}${eye(6)}<ellipse cx="0" cy="2.6" rx="1.6" ry="1.1" fill="#4a3b33"/>${blush}`;
+    else if (k === 'midori' || k === 'kiiro') {
+      const f = k === 'midori' ? '#b9dc8e' : '#ffe08a';
+      g = `<ellipse cx="-5" cy="-16" rx="3.6" ry="8" fill="${f}" stroke="#6b564a" stroke-width="1.3"/><ellipse cx="5" cy="-16" rx="3.6" ry="8" fill="${f}" stroke="#6b564a" stroke-width="1.3"/>${head(f)}
+        ${eye(-6)}${eye(6)}${mouth}${k === 'kiiro' ? '<circle cx="-10" cy="4" r="3" fill="#e2566b" opacity=".8"/><circle cx="10" cy="4" r="3" fill="#e2566b" opacity=".8"/>' : blush}`;
+    } else g = `<path d="M-13,-4 L-12,-15 L-5,-10Z M13,-4 L12,-15 L5,-10Z" fill="#f2b06a" stroke="#6b564a" stroke-width="1.3" stroke-linejoin="round"/>${head('#f6c07e')}
+      <path d="M-3,-11 v4 M0,-12 v5 M3,-11 v4" stroke="#d98b3e" stroke-width="1.4" stroke-linecap="round"/>${eye(-6)}${eye(6)}${mouth}${blush}`;
+    return g;
+  }
+  function decoSvg(k) {
+    if (k === 'flower') return `<g><path d="M-6,6 V0 M0,6 V-3 M6,6 V1" stroke="#5f9e4a" stroke-width="1.4"/>
+      ${[[-6, -1, '#f6a5c0'], [0, -4, '#ffffff'], [6, 0, '#f6a5c0']].map(([x, y, c]) => `<g transform="translate(${x},${y})" fill="${c}" stroke="#6b564a" stroke-width=".6"><circle cy="-2.2" r="2"/><circle cx="2.1" cy="-.6" r="2"/><circle cx="1.3" cy="1.9" r="2"/><circle cx="-1.3" cy="1.9" r="2"/><circle cx="-2.1" cy="-.6" r="2"/><circle r="1.2" fill="#ffd45e" stroke="none"/></g>`).join('')}</g>`;
+    if (k === 'sunflower') return `<g><path d="M0,10 V-4" stroke="#5f9e4a" stroke-width="2"/><path d="M0,4 C-5,1 -7,5 -6,7 C-3,7 -1,6 0,4Z" fill="#86c870" stroke="#4a3b33" stroke-width=".7"/>
+      <g transform="translate(0,-8)">${[...Array(10)].map((_, i) => `<ellipse cx="0" cy="-6" rx="2.2" ry="3.6" fill="#ffd45e" stroke="#c99a3a" stroke-width=".6" transform="rotate(${i * 36})"/>`).join('')}<circle r="3.6" fill="#a0673e" stroke="#4a3b33" stroke-width=".8"/></g></g>`;
+    if (k === 'mushroom') return `<g><rect x="-3" y="-1" width="6" height="8" rx="2.5" fill="#fff6e4" stroke="#4a3b33" stroke-width="1"/><path d="M-9,0 C-9,-9 9,-9 9,0Z" fill="#ef5b6b" stroke="#4a3b33" stroke-width="1.1"/><circle cx="-4" cy="-4" r="1.5" fill="#fff"/><circle cx="3" cy="-5" r="1.8" fill="#fff"/><circle cx="5.5" cy="-1.5" r="1" fill="#fff"/></g>`;
+    if (k === 'fence') return `<g fill="#fff3dc" stroke="#4a3b33" stroke-width="1.1"><rect x="-16" y="-3" width="32" height="3.5" rx="1.5"/><rect x="-16" y="3" width="32" height="3.5" rx="1.5"/>${[-13, -4.5, 4.5, 13].map(x => `<path d="M${x - 2.4},9 V-6 L${x},-9 L${x + 2.4},-6 V9Z"/>`).join('')}</g>`;
+    if (k === 'lantern') return `<g><rect x="-1.5" y="-10" width="3" height="20" rx="1" fill="#a0673e" stroke="#4a3b33" stroke-width=".9"/><path d="M-1,-10 H6 V-8" fill="none" stroke="#4a3b33" stroke-width="1.2"/>
+      <rect x="2.5" y="-8" width="7" height="9" rx="2.5" fill="#ffe9a0" stroke="#4a3b33" stroke-width="1"/><circle cx="6" cy="-3.5" r="6" fill="#fff3b0" opacity=".35"/><ellipse cx="0" cy="10" rx="5" ry="1.5" fill="url(#shadowG)"/></g>`;
+    const sh = (rx, y) => `<ellipse cx="0" cy="${y}" rx="${rx}" ry="2" fill="url(#shadowG)"/>`;
+    const play = (body) => `<g>${body}</g>`;
+    if (k === 'sheet') return `<g><path d="M-18,-6 L14,-9 L18,8 L-14,10Z" fill="#fff" stroke="#4a3b33" stroke-width="1"/>
+      <g fill="#f6a5c0" opacity=".8"><path d="M-10,-6.8 L-6,-7.2 L-3,9.6 L-7,9.9Z"/><path d="M2,-8 L6,-8.4 L9,8.8 L5,9.1Z"/><path d="M-17,-1 L15.5,-3.6 L16.4,.4 L-16,3Z"/></g></g>`;
+    if (k === 'basket') return `<g>${'<ellipse cx="0" cy="7" rx="9" ry="2" fill="url(#shadowG)"/>'}<path d="M-7,-5 C-7,-14 7,-14 7,-5" fill="none" stroke="#a0673e" stroke-width="1.8"/>
+      <path d="M-9,-5 H9 L7,6 H-7Z" fill="#e8b98a" stroke="#4a3b33" stroke-width="1"/><path d="M-8,-1 H8 M-7.5,3 H7.5" stroke="#c99a6e" stroke-width="1"/><path d="M-9,-5 Q-4,-9 0,-5 Q4,-9 9,-5" fill="#f6a5c0" stroke="#4a3b33" stroke-width=".8"/></g>`;
+    if (k === 'bento') return `<g><rect x="-9" y="-6" width="18" height="12" rx="2.5" fill="#f2a65a" stroke="#4a3b33" stroke-width="1"/><rect x="-7" y="-4" width="14" height="8" rx="1.5" fill="#fff8ee"/>
+      <ellipse cx="-3.5" cy="0" rx="3" ry="2.6" fill="#fff" stroke="#6b564a" stroke-width=".6"/><rect x="-5" y="-.5" width="3" height="2" fill="#4a3b33"/><use href="#berry" transform="translate(3.5,-.6) scale(.5)"/><circle cx="2" cy="2.2" r="1.3" fill="#ffd45e"/><circle cx="5" cy="2.2" r="1.3" fill="#86c870"/></g>`;
+    if (k === 'grill') return `<g><ellipse cx="0" cy="13" rx="11" ry="2" fill="url(#shadowG)"/><path d="M-6,4 L-9,13 M6,4 L9,13" stroke="#6b564a" stroke-width="1.6" stroke-linecap="round"/>
+      <path d="M-11,-2 H11 C11,4 7,6 0,6 C-7,6 -11,4 -11,-2Z" fill="#6b564a" stroke="#4a3b33" stroke-width="1"/><path d="M-10,-2 H10" stroke="#e98a4b" stroke-width="2"/>
+      <use href="#fish" fill="#f2a65a" transform="translate(-4,-4) scale(.6)"/><use href="#apple" transform="translate(5,-4.5) scale(.5)"/>
+      <g class="bob" opacity=".7"><path d="M-4,-9 q-2,-3 0,-6 M3,-10 q-2,-3 0,-6" fill="none" stroke="#fff" stroke-width="1.6" stroke-linecap="round"/></g></g>`;
+    if (k === 'tent') return `<g><ellipse cx="0" cy="11" rx="16" ry="2" fill="url(#shadowG)"/><path d="M-16,11 L0,-14 L16,11Z" fill="#9fd9b4" stroke="#4a3b33" stroke-width="1.2" stroke-linejoin="round"/>
+      <path d="M-5,11 L0,-2 L5,11Z" fill="#fff8ee" stroke="#4a3b33" stroke-width="1"/><path d="M0,-14 V-18 L5,-16.5 L0,-15" fill="#ef5b6b" stroke="#4a3b33" stroke-width=".8"/></g>`;
+    if (k === 'campfire') return `<g><ellipse cx="0" cy="6" rx="11" ry="3" fill="#e9e1d3" stroke="#a99b88" stroke-width=".9"/><path d="M-8,5 L8,1 M-8,1 L8,5" stroke="#a0673e" stroke-width="2.4" stroke-linecap="round"/>
+      <g class="sway" style="transform-origin:0 4px"><path d="M0,3 C-6,0 -5,-7 0,-12 C1,-7 6,-6 4,-1 C3,2 1,3 0,3Z" fill="#f6a24a" stroke="#d9773a" stroke-width=".8"/><path d="M0,2 C-3,0 -2,-4 0,-6 C1,-3 3,-2 1.6,0Z" fill="#ffe08a"/></g></g>`;
+    if (k === 'slide') return `<g><ellipse cx="0" cy="13" rx="17" ry="2" fill="url(#shadowG)"/><path d="M-12,13 V-10 M-6,13 V-10" stroke="#7cb8e0" stroke-width="2"/>
+      <path d="M-12,-4 H-6 M-12,2 H-6 M-12,8 H-6" stroke="#7cb8e0" stroke-width="1.4"/><rect x="-14" y="-12" width="10" height="3" rx="1.2" fill="#ffd45e" stroke="#4a3b33" stroke-width=".9"/>
+      <path d="M-5,-10 C2,-8 6,4 16,10 L14,13 C4,7 0,-4 -6,-6Z" fill="#ef5b6b" stroke="#4a3b33" stroke-width="1"/></g>`;
+    if (k === 'seesaw') return `<g><ellipse cx="0" cy="7" rx="16" ry="2" fill="url(#shadowG)"/><path d="M-4,7 L0,-1 L4,7Z" fill="#ffd45e" stroke="#4a3b33" stroke-width="1"/>
+      <g class="sway" style="transform-origin:0 -2px"><rect x="-17" y="-4" width="34" height="3" rx="1.4" fill="#f6a5c0" stroke="#4a3b33" stroke-width="1"/><path d="M-14,-4 V-8 M14,-4 V-8" stroke="#4a3b33" stroke-width="1.4" stroke-linecap="round"/></g></g>`;
+    if (k === 'sandbox') return `<g><rect x="-16" y="-8" width="32" height="18" rx="3" fill="#c99a6e" stroke="#4a3b33" stroke-width="1.1"/><rect x="-13" y="-5" width="26" height="12" rx="2" fill="#f2dfb8"/>
+      <path d="M-6,3 C-6,-2 2,-2 2,3Z" fill="#ead2a2" stroke="#c9a873" stroke-width=".7"/><path d="M6,-2 L9,4" stroke="#ef5b6b" stroke-width="1.6" stroke-linecap="round"/><path d="M5,-3 h4 l-1,3 h-2Z" fill="#7cb8e0" stroke="#4a3b33" stroke-width=".6"/></g>`;
+    if (k === 'sakuratree' || k === 'momiji') {
+      const c1 = k === 'sakuratree' ? '#f8c6d4' : '#f2a65a', c2 = k === 'sakuratree' ? '#fbe0e8' : '#ef5b5b';
+      return `<g><ellipse cx="0" cy="13" rx="13" ry="2" fill="url(#shadowG)"/><rect x="-2.5" y="1" width="5" height="12" rx="2" fill="#a0673e" stroke="#4a3b33" stroke-width="1.1"/>
+        <circle cx="0" cy="-7" r="12" fill="${c1}" stroke="#4a3b33" stroke-width="1.3"/><circle cx="-5" cy="-10" r="3.4" fill="${c2}"/><circle cx="5" cy="-4" r="2.6" fill="${c2}"/><circle cx="3" cy="-13" r="2" fill="${c2}"/></g>`;
+    }
+    if (k === 'tulip') return `<g><path d="M-5,8 V0 M0,8 V-2 M5,8 V0" stroke="#5f9e4a" stroke-width="1.4"/>${[[-5, -1, '#ef5b6b'], [0, -3, '#ffd45e'], [5, -1, '#f6a5c0']].map(([x, y, c]) => `<path d="M${x - 3},${y} V${y - 5} L${x - 1.5},${y - 3} L${x},${y - 6} L${x + 1.5},${y - 3} L${x + 3},${y - 5} V${y} C${x + 3},${y + 3} ${x - 3},${y + 3} ${x - 3},${y}Z" fill="${c}" stroke="#4a3b33" stroke-width=".7"/>`).join('')}</g>`;
+    if (k === 'pool') return `<g><ellipse cx="0" cy="2" rx="17" ry="9" fill="#7cb8e0" stroke="#4a3b33" stroke-width="1.1"/><ellipse cx="0" cy="1" rx="13" ry="6" fill="#bfe3f4"/>
+      <ellipse cx="0" cy="4" rx="17" ry="7" fill="none" stroke="#ffd45e" stroke-width="2.4" stroke-dasharray="6 6"/><circle cx="6" cy="0" r="3" fill="#fff" stroke="#ef5b6b" stroke-width="1.6"/></g>`;
+    if (k === 'kakigori') return `<g><ellipse cx="0" cy="13" rx="14" ry="2" fill="url(#shadowG)"/><rect x="-12" y="0" width="24" height="13" rx="2" fill="#fff8ee" stroke="#4a3b33" stroke-width="1"/>
+      <path d="M-14,0 H14 L12,-6 H-12Z" fill="#7cb8e0" stroke="#4a3b33" stroke-width="1"/><path d="M-6,-6 V-14 H6 V-6" fill="#fff" stroke="#4a3b33" stroke-width=".9"/><text x="0" y="-8.4" text-anchor="middle" font-size="5" fill="#ef5b6b" font-family="Zen Maru Gothic, sans-serif" font-weight="700">こおり</text>
+      <path d="M-4,7 L0,12 L4,7Z" fill="#fff6e4" stroke="#4a3b33" stroke-width=".7"/><path d="M-4.5,7 C-4.5,2 4.5,2 4.5,7Z" fill="#f6a5c0" stroke="#4a3b33" stroke-width=".7"/></g>`;
+    if (k === 'pumpkin') return `<g><ellipse cx="0" cy="7" rx="10" ry="2" fill="url(#shadowG)"/><ellipse cx="-4" cy="0" rx="5" ry="6.5" fill="#f2a65a" stroke="#4a3b33" stroke-width="1"/><ellipse cx="4" cy="0" rx="5" ry="6.5" fill="#f2a65a" stroke="#4a3b33" stroke-width="1"/><ellipse cx="0" cy="0" rx="4.5" ry="7" fill="#f6b46c" stroke="#4a3b33" stroke-width="1"/>
+      <path d="M0,-7 C0,-10 2,-11 3,-11" fill="none" stroke="#5f9e4a" stroke-width="1.6" stroke-linecap="round"/></g>`;
+    if (k === 'leaves') return `<g>${[[-8, 2, '#ef5b5b', 20], [0, -2, '#f2a65a', -30], [7, 3, '#ffd45e', 60], [2, 5, '#c97a3e', 110]].map(([x, y, c, r]) => `<path d="M${x},${y - 4} L${x + 1.2},${y - 1} L${x + 4},${y - 1.6} L${x + 2},${y + .8} L${x + 3},${y + 3.6} L${x},${y + 2} L${x - 3},${y + 3.6} L${x - 2},${y + .8} L${x - 4},${y - 1.6} L${x - 1.2},${y - 1}Z" fill="${c}" stroke="#6b564a" stroke-width=".5" transform="rotate(${r} ${x} ${y})"/>`).join('')}</g>`;
+    if (k === 'snowman') return `<g><ellipse cx="0" cy="12" rx="10" ry="2" fill="url(#shadowG)"/><circle cx="0" cy="5" r="7.5" fill="#fff" stroke="#4a3b33" stroke-width="1.1"/><circle cx="0" cy="-6" r="5.5" fill="#fff" stroke="#4a3b33" stroke-width="1.1"/>
+      <path d="M-5,-2 C-2,0 2,0 5,-2" stroke="#ef5b6b" stroke-width="2" fill="none" stroke-linecap="round"/><circle cx="-2" cy="-7" r=".9" fill="#4a3b33"/><circle cx="2" cy="-7" r=".9" fill="#4a3b33"/><path d="M0,-5.5 l3,1 l-3,.6Z" fill="#f2a65a"/>
+      <path d="M-4,-10.5 H4 V-13 H-4Z" fill="#7cb8e0" stroke="#4a3b33" stroke-width=".8"/></g>`;
+    if (k === 'xmastree') return `<g><ellipse cx="0" cy="15" rx="12" ry="2" fill="url(#shadowG)"/><rect x="-2" y="9" width="4" height="6" fill="#a0673e"/>
+      <path d="M0,-16 L10,0 H5 L12,10 H-12 L-5,0 H-10Z" fill="#6fb85e" stroke="#4a3b33" stroke-width="1.1" stroke-linejoin="round"/>
+      <circle cx="-4" cy="3" r="1.6" fill="#ef5b6b"/><circle cx="4" cy="6" r="1.6" fill="#ffd45e"/><circle cx="2" cy="-4" r="1.4" fill="#7cb8e0"/><circle cx="-2" cy="-8" r="1.2" fill="#f6a5c0"/>
+      <path d="M0,-20 l1.4,2.8 l3,.4 l-2.2,2 l.6,3 l-2.8,-1.5 l-2.8,1.5 l.6,-3 l-2.2,-2 l3,-.4Z" fill="#ffd45e" stroke="#c99a3a" stroke-width=".6"/></g>`;
+    if (k === 'stone') return `<g fill="#e9e1d3" stroke="#a99b88" stroke-width=".9"><ellipse cx="-6" cy="0" rx="6" ry="3.6"/><ellipse cx="6" cy="1" rx="5" ry="3.2"/><ellipse cx="0" cy="-4" rx="4" ry="2.6"/></g>`;
+    if (k === 'pot') return `<g>${sh(7, 8)}<path d="M-6,0 H6 L4.5,8 H-4.5Z" fill="#e8956b" stroke="#4a3b33" stroke-width="1"/><rect x="-7" y="-2" width="14" height="3" rx="1.2" fill="#f0a77f" stroke="#4a3b33" stroke-width="1"/>
+      <path d="M0,-2 C-6,-6 -6,-11 -2,-11 C-1,-8 0,-5 0,-2 C0,-5 1,-8 2,-11 C6,-11 6,-6 0,-2Z" fill="#86c870" stroke="#4a3b33" stroke-width=".8"/></g>`;
+    if (k === 'mailbox') return `<g>${sh(6, 12)}<rect x="-1.5" y="0" width="3" height="12" fill="#a0673e" stroke="#4a3b33" stroke-width=".8"/>
+      <path d="M-7,1 V-6 C-7,-11 7,-11 7,-6 V1Z" fill="#ef5b6b" stroke="#4a3b33" stroke-width="1.1"/><rect x="-4" y="-5" width="8" height="1.6" rx=".8" fill="#4a3b33"/><path d="M7,-6 h3 v-4 h-3" fill="#ffd45e" stroke="#4a3b33" stroke-width=".8"/></g>`;
+    if (k === 'tree') return `<g>${sh(12, 13)}<rect x="-2.5" y="2" width="5" height="11" rx="2" fill="#b98a62" stroke="#4a3b33" stroke-width="1.1"/><circle cx="0" cy="-6" r="11" fill="#8fcb7a" stroke="#4a3b33" stroke-width="1.3"/><circle cx="-4" cy="-9" r="3" fill="#a9db93"/></g>`;
+    if (k === 'scarecrow') return `<g>${sh(7, 13)}<path d="M0,13 V-4 M-10,0 H10" stroke="#a0673e" stroke-width="2" stroke-linecap="round"/>
+      <path d="M-6,-1 H6 L5,8 H-5Z" fill="#7cb8e0" stroke="#4a3b33" stroke-width="1"/><circle cx="0" cy="-7" r="5" fill="#f6e3c8" stroke="#4a3b33" stroke-width="1"/>
+      <path d="M-8,-10 H8 M-5,-10 C-5,-16 5,-16 5,-10" fill="#ffe08a" stroke="#4a3b33" stroke-width="1"/><circle cx="-1.8" cy="-7" r=".9" fill="#4a3b33"/><circle cx="1.8" cy="-7" r=".9" fill="#4a3b33"/></g>`;
+    if (k === 'parasol') return `<g>${sh(10, 14)}<path d="M0,14 V-6" stroke="#8a776a" stroke-width="1.6"/>
+      <path d="M-14,-4 C-12,-14 12,-14 14,-4 Q10,-6 7,-4 Q3.5,-6 0,-4 Q-3.5,-6 -7,-4 Q-10,-6 -14,-4Z" fill="#fff" stroke="#4a3b33" stroke-width="1.1"/>
+      <path d="M-7,-4 C-6,-10 -3,-12 0,-12 C3,-12 6,-10 7,-4 Q3.5,-6 0,-4 Q-3.5,-6 -7,-4Z" fill="#f6a5c0"/></g>`;
+    if (k === 'table') return `<g>${sh(16, 10)}<rect x="-8" y="-4" width="16" height="3" rx="1.4" fill="#fff6e4" stroke="#4a3b33" stroke-width="1"/><path d="M-6,-1 V9 M6,-1 V9" stroke="#a0673e" stroke-width="1.6"/>
+      <path d="M-15,9 V1 H-11 V-5 M15,9 V1 H11 V-5" fill="none" stroke="#c99a6e" stroke-width="1.8" stroke-linecap="round"/><use href="#cake" transform="translate(0,-7) scale(.45)"/></g>`;
+    if (k === 'swing') return `<g>${sh(14, 13)}<path d="M-12,13 L-9,-12 L9,-12 L12,13" fill="none" stroke="#a0673e" stroke-width="2" stroke-linejoin="round"/>
+      <path d="M-4,-12 V4 M4,-12 V4" stroke="#6b564a" stroke-width=".8"/><rect x="-6" y="4" width="12" height="2.6" rx="1.2" fill="#f6a5c0" stroke="#4a3b33" stroke-width=".9"/></g>`;
+    if (k === 'windmill') return `<g>${sh(9, 16)}<path d="M-6,16 L-3.5,-6 H3.5 L6,16Z" fill="#fff6e4" stroke="#4a3b33" stroke-width="1.1"/><rect x="-1.8" y="9" width="3.6" height="7" rx="1.8" fill="#c99a6e"/>
+      <g class="sway" style="transform-origin:0 -8px"><g transform="translate(0,-8)">${[0, 90, 180, 270].map(r => `<rect x="-1.6" y="-14" width="3.2" height="13" rx="1.2" fill="#f6a5c0" stroke="#4a3b33" stroke-width=".8" transform="rotate(${r + 20})"/>`).join('')}<circle r="1.8" fill="#ffd45e" stroke="#4a3b33" stroke-width=".8"/></g></g></g>`;
+    if (k === 'fountain') return `<g>${sh(16, 9)}<ellipse cx="0" cy="5" rx="15" ry="5" fill="#e9e1d3" stroke="#4a3b33" stroke-width="1.1"/><ellipse cx="0" cy="4" rx="12" ry="3.4" fill="#9fd3ea"/>
+      <rect x="-2" y="-7" width="4" height="10" rx="1.5" fill="#e9e1d3" stroke="#4a3b33" stroke-width="1"/><ellipse cx="0" cy="-7" rx="6" ry="2" fill="#e9e1d3" stroke="#4a3b33" stroke-width="1"/>
+      <g class="bob"><path d="M0,-9 C-2,-14 -6,-13 -7,-9 M0,-9 C2,-14 6,-13 7,-9 M0,-9 V-15" fill="none" stroke="#9fd3ea" stroke-width="1.6" stroke-linecap="round"/></g></g>`;
+    return `<g><ellipse cx="0" cy="8" rx="15" ry="2" fill="url(#shadowG)"/><path d="M-12,7 V2 M12,7 V2 M-10,7 V2 M10,7 V2" stroke="#8a5a3a" stroke-width="2"/>
+      <rect x="-15" y="-1" width="30" height="4" rx="1.6" fill="#c99a6e" stroke="#4a3b33" stroke-width="1"/><rect x="-14" y="-8" width="28" height="3.4" rx="1.4" fill="#c99a6e" stroke="#4a3b33" stroke-width="1"/><path d="M-11,-5 V-1 M11,-5 V-1" stroke="#8a5a3a" stroke-width="1.6"/></g>`;
+  }
+  function pondSvg() {
+    if (!S.pond.owned) {
+      if (!S.orchard.owned) return `<use href="#tree" x="780" y="120"/><use href="#tree" x="1020" y="110"/><use href="#tree" x="800" y="380"/><rect x="722" y="2" width="356" height="636" fill="#fdf6e9" opacity=".72"/>
+        <text x="900" y="240" text-anchor="middle" font-family="Yusei Magic, Zen Maru Gothic, sans-serif" font-size="14" fill="#8a776a">かじゅえんの さきに なにか ありそう…</text>`;
+      return `<use href="#tree" x="780" y="120"/><use href="#tree" x="1020" y="110"/><use href="#tree" x="800" y="380"/>
+        <g id="pondLand" class="tap" tabindex="0" role="button" aria-label="いけの ある とちを かう ${POND_PRICE}コイン">
+        <rect x="722" y="2" width="356" height="636" fill="#fdf6e9" opacity=".72"/>
+        <rect class="focus-ring" x="800" y="168" width="200" height="120" rx="18" fill="#fffdf7" stroke="#4a3b33" stroke-width="2"/>
+        <text x="900" y="200" text-anchor="middle" font-family="Yusei Magic, Zen Maru Gothic, sans-serif" font-size="16" fill="#4a3b33">いけの ある とち</text>
+        <text x="900" y="222" text-anchor="middle" font-family="Zen Maru Gothic, sans-serif" font-weight="700" font-size="11" fill="#8a776a">さかなつりが できるよ</text>
+        <rect x="840" y="236" width="120" height="34" rx="12" fill="#ef5b6b" stroke="#4a3b33" stroke-width="2"/>
+        <text x="900" y="258" text-anchor="middle" font-family="Zen Maru Gothic, sans-serif" font-weight="700" font-size="13" fill="#fff">${POND_PRICE}コインで かう</text></g>`;
+    }
+    return `<use href="#tree" x="760" y="80"/><use href="#tree" x="1040" y="90"/><use href="#tree" x="1050" y="420"/>
+      <rect x="860" y="36" width="80" height="24" rx="8" fill="#fff6e4" stroke="#4a3b33" stroke-width="1.8"/>
+      <text x="900" y="53" text-anchor="middle" font-family="Yusei Magic, Zen Maru Gothic, sans-serif" font-size="13" fill="#4f8fbf">いけ</text>
+      <g id="pondTap" class="tap" tabindex="0" role="button" aria-label="いけで さかなつり">
+        <path d="M780,330 C770,280 830,258 900,262 C980,266 1040,290 1030,336 C1020,384 950,404 890,400 C820,396 790,372 780,330Z" fill="#efe2c2" stroke="#d9c49a" stroke-width="16" stroke-linejoin="round"/>
+        <path class="focus-ring" d="M780,330 C770,280 830,258 900,262 C980,266 1040,290 1030,336 C1020,384 950,404 890,400 C820,396 790,372 780,330Z" fill="url(#waterG)" stroke="#4a3b33" stroke-width="2"/>
+        <path d="M786,322 C786,288 836,268 900,268 C970,270 1020,290 1024,326" fill="none" stroke="#5d9fbf" stroke-width="6" stroke-linecap="round" opacity=".28"/>
+        <path d="M805,330 C800,296 846,282 900,284 C960,286 1005,304 1000,334" fill="none" stroke="#c4e6f4" stroke-width="5" stroke-linecap="round"/>
+        <g class="bob"><path d="M860,300 q10,-4 20,0 M940,352 q10,-4 20,0 M990,320 q8,-3 16,0" stroke="#fff" stroke-width="1.6" fill="none" stroke-linecap="round"/></g>
+        <g fill="#86c870" stroke="#4a3b33" stroke-width="1.2"><path d="M830,360 a10,7 0 1 1 1,0 l-1,-7Z"/><path d="M990,370 a9,6 0 1 1 1,0 l-1,-6Z"/></g>
+        <use href="#flower" transform="translate(834,354) scale(.9)"/>
+        <use href="#fish" fill="#9cc9e8" opacity=".55" transform="translate(920,330) scale(1.3)"/>
+      </g>
+      <path d="M770,300 L760,262 M776,302 L772,258 M1040,340 L1052,304 M1046,344 L1058,312" stroke="#7cb85f" stroke-width="2" stroke-linecap="round"/>
+      <ellipse cx="904" cy="440" rx="34" ry="6" fill="url(#shadowG)"/>
+      <rect x="872" y="398" width="52" height="40" rx="3" fill="url(#soilG)" stroke="#4a3b33" stroke-width="1.6"/>
+      <path d="M872,408 H924 M872,418 H924 M872,428 H924" stroke="#a7784f" stroke-width="1.2"/><path d="M874,400 H922" stroke="#f0d2a8" stroke-width="1.6" opacity=".9"/>
+      <path d="M876,438 v6 M920,438 v6" stroke="#8a5a3a" stroke-width="3" stroke-linecap="round"/>`;
+  }
+  function fishIcon(f, tr) {
+    if (f.junk) return `<g transform="${tr}"><g transform="translate(-1,0)"><path d="M-5,-8 H3 V1 H8 C10.5,1 10.5,7 8,7 H-5Z" fill="#8fbf6a" stroke="#4a3b33" stroke-width="1" stroke-linejoin="round"/><rect x="-6" y="-9.5" width="10" height="3" rx="1.2" fill="#b4dc98" stroke="#4a3b33" stroke-width=".8"/><circle cx="2" cy="4" r="1" fill="#fff" opacity=".7"/></g></g>`;
+    if (f.treasure) return `<g transform="${tr}"><rect x="-8" y="-3" width="16" height="10" rx="1.5" fill="#c99a6e" stroke="#4a3b33" stroke-width="1"/><path d="M-8,-3 C-8,-9.5 8,-9.5 8,-3Z" fill="#e0b07a" stroke="#4a3b33" stroke-width="1"/><path d="M-8,-3 H8" stroke="#ffd45e" stroke-width="1.4"/><rect x="-1.8" y="-4.5" width="3.6" height="4.5" rx=".8" fill="#ffd45e" stroke="#4a3b33" stroke-width=".7"/><path d="M6,-10 l.8,2 l2,.8 l-2,.8 l-.8,2 l-.8,-2 l-2,-.8 l2,-.8Z" fill="#fff6a8" stroke="#e0b84a" stroke-width=".4"/></g>`;
+    return `<g transform="${tr}"><use href="#fish" fill="${f.color}"/>${f.spots ? '<circle cx="-.5" cy="-1.8" r="1.9" fill="#ef6b5b"/><circle cx="3" cy="1.6" r="1.3" fill="#ef6b5b"/>' : ''}${f.whisk ? '<path d="M-7.6,.8 q-2.6,1 -3.8,3.6 M-7.6,0 q-2.6,-1 -3.8,-3.4" stroke="#4a3b33" stroke-width=".6" fill="none" stroke-linecap="round"/>' : ''}</g>`;
+  }
+  const stext = (x, y, size, fill, t) => `<text x="${x}" y="${y}" text-anchor="middle" font-family="Yusei Magic, Zen Maru Gothic, sans-serif" font-size="${size}" fill="${fill}">${t}</text>`;
+  function homeLot(key) {
+    const h = HOMES[key], big = key === 'sakura', friend = S[key] === 'friend';
+    const [x, y, w, ht] = big ? [810, 90, 180, 112] : [h.cx - 42, 354, 84, 86];
+    const cx = x + w / 2, cy = y + ht / 2;
+    const lines = big
+      ? [friend ? 'さくらの おうち' : '？？？の とち', friend ? `${h.price}コインで たてる` : 'なかまが くると…']
+      : [friend ? `${h.name}の` : '？？？の', friend ? 'おうち' : 'とち', friend ? `${h.price}コイン` : 'なかまが くると'];
+    const body = big
+      ? stext(cx, cy - 2, 14, '#4a3b33', lines[0]) + `<text x="${cx}" y="${cy + 16}" text-anchor="middle" font-family="Zen Maru Gothic, sans-serif" font-weight="700" font-size="10" fill="#6c8a4b">${lines[1]}</text>`
+      : stext(cx, cy - 12, 10, '#4a3b33', lines[0]) + stext(cx, cy + 2, 10, '#4a3b33', lines[1]) + `<text x="${cx}" y="${cy + 18}" text-anchor="middle" font-family="Zen Maru Gothic, sans-serif" font-weight="700" font-size="8.5" fill="#6c8a4b">${lines[2]}</text>`;
+    return `<g ${friend ? `class="tap" data-home="${key}" tabindex="0" role="button" aria-label="${h.name}の おうちを たてる ${h.price}コイン"` : `opacity=".6"`}>
+      <rect class="focus-ring" x="${x}" y="${y}" width="${w}" height="${ht}" rx="14" fill="#e5f1cc" stroke="#9cb977" stroke-width="2" stroke-dasharray="5 4"/>${body}</g>`;
+  }
+  function smallHouse(key) {
+    const h = HOMES[key], c = h.cx, b = 440;
+    let ears = '', gable = `<circle cx="${c}" cy="${b - 76}" r="7" fill="#cfeaf7" stroke="#4a3b33" stroke-width="1.4"/>`;
+    if (key === 'tonsuke') {
+      ears = `<path d="M${c - 31},${b - 72} L${c - 30},${b - 100} L${c - 12},${b - 86}Z M${c + 31},${b - 72} L${c + 30},${b - 100} L${c + 12},${b - 86}Z" fill="${h.roof}" stroke="#4a3b33" stroke-width="1.6" stroke-linejoin="round"/>`;
+      gable = `<ellipse cx="${c}" cy="${b - 75}" rx="10" ry="7" fill="#ff9fb6" stroke="#4a3b33" stroke-width="1.4"/><ellipse cx="${c - 3.4}" cy="${b - 75}" rx="1.6" ry="2.4" fill="#c4507a"/><ellipse cx="${c + 3.4}" cy="${b - 75}" rx="1.6" ry="2.4" fill="#c4507a"/>`;
+    } else {
+      ears = [-1, 1].map(sd => `<g transform="rotate(${sd * 12} ${c + sd * 9} ${b - 100})"><ellipse cx="${c + sd * 9}" cy="${b - 114}" rx="5.5" ry="15" fill="${h.ear}" stroke="#4a3b33" stroke-width="1.5"/><ellipse cx="${c + sd * 9}" cy="${b - 113}" rx="2.6" ry="10" fill="${h.inner}"/></g>`).join('');
+    }
+    return `<g class="tap" data-home="${key}" tabindex="0" role="button" aria-label="${h.name}の おうちに はいる">
+      <ellipse cx="${c + 6}" cy="${b + 2}" rx="52" ry="7" fill="url(#shadowG)"/>${ears}
+      <rect class="focus-ring" x="${c - 36}" y="${b - 62}" width="72" height="62" rx="5" fill="${h.wall}" stroke="#4a3b33" stroke-width="1.8"/>
+      <rect x="${c - 35}" y="${b - 61}" width="70" height="60" rx="4" fill="url(#wallShade)"/><rect x="${c - 35}" y="${b - 61}" width="70" height="60" rx="4" fill="url(#aoG)"/>
+      <path d="M${c - 45},${b - 56} L${c},${b - 104} L${c + 45},${b - 56}Z" fill="${h.roof}" stroke="#4a3b33" stroke-width="1.8" stroke-linejoin="round"/>
+      <path d="M${c - 44},${b - 56.5} L${c},${b - 103} L${c + 44},${b - 56.5}Z" fill="url(#roofLight)"/>
+      <path d="M${c - 35},${b - 56} H${c + 35} V${b - 51} C${c + 10},${b - 54} ${c - 10},${b - 54} ${c - 35},${b - 51}Z" fill="#7a5236" opacity=".12"/>
+      ${gable}
+      <path d="M${c - 10},${b} V${b - 22} C${c - 10},${b - 33} ${c + 10},${b - 33} ${c + 10},${b - 22} V${b}Z" fill="#c99a6e" stroke="#4a3b33" stroke-width="1.6"/>
+      <circle cx="${c + 5.5}" cy="${b - 12}" r="1.4" fill="#4a3b33"/>
+      <rect x="${c - 31}" y="${b - 46}" width="15" height="14" rx="3" fill="#cfeaf7" stroke="#4a3b33" stroke-width="1.4"/>
+      <rect x="${c + 16}" y="${b - 46}" width="15" height="14" rx="3" fill="#cfeaf7" stroke="#4a3b33" stroke-width="1.4"/>
+      <use href="#flower" x="${c - 26}" y="${b - 3}"/><use href="#flower" x="${c + 24}" y="${b - 2}"/>
+      <rect x="${c - 40}" y="${b + 7}" width="80" height="15" rx="7" fill="#fff" stroke="#4a3b33" stroke-width="1.2"/>
+      ${stext(c, b + 18, 8.5, '#a0673e', h.name + 'の おうち')}</g>`;
+  }
+  function bigHouse() {
+    const g = S.homes.sakura.guests || [];
+    let bl = '';
+    [[822, 102, 1.2], [858, 74, 1], [944, 76, 1.1], [982, 104, 1], [878, 104, .8], [924, 108, .8]].forEach(([x, y, sc]) => bl += `<g transform="translate(${x},${y}) scale(${sc})">${blossom('#fff')}</g>`);
+    const win = (x) => `<rect x="${x}" y="140" width="34" height="27" rx="5" fill="#cfeaf7" stroke="#4a3b33" stroke-width="1.6"/>
+      <path d="M${x + 2},142 Q${x + 10},152 ${x + 4},165 H${x + 2}Z M${x + 32},142 Q${x + 24},152 ${x + 30},165 H${x + 32}Z" fill="#f6a5c0"/>
+      <rect x="${x - 2}" y="167" width="38" height="7" rx="3" fill="#c99a6e" stroke="#4a3b33" stroke-width="1.2"/>
+      <use href="#flower" x="${x + 8}" y="166"/><use href="#flower" x="${x + 26}" y="166"/>`;
+    return `<g class="tap" data-home="sakura" tabindex="0" role="button" aria-label="さくらの おうちに はいる">
+      <ellipse cx="908" cy="207" rx="120" ry="10" fill="url(#shadowG)"/>
+      <path d="M830,66 L840,34 L864,60Z M936,60 L960,34 L970,66Z" fill="#f8c6d4" stroke="#4a3b33" stroke-width="1.8" stroke-linejoin="round"/>
+      <path d="M840,56 L843,43 L852,57Z M948,57 L957,43 L960,56Z" fill="#f6a5c0"/>
+      <rect class="focus-ring" x="800" y="118" width="200" height="88" rx="6" fill="#fff" stroke="#4a3b33" stroke-width="2"/>
+      <rect x="801" y="119" width="198" height="86" rx="5" fill="url(#wallShade)"/><rect x="801" y="119" width="198" height="86" rx="5" fill="url(#aoG)"/>
+      <path d="M786,124 L822,60 L978,60 L1014,124Z" fill="#f8c6d4" stroke="#4a3b33" stroke-width="2" stroke-linejoin="round"/>
+      <path d="M787,123 L822.6,61 L977.4,61 L1013,123Z" fill="url(#roofLight)"/>
+      <path d="M801,125 H999 V132 C930,128 870,128 801,132Z" fill="#7a5236" opacity=".12"/>
+      ${bl}
+      <circle cx="900" cy="88" r="11" fill="#cfeaf7" stroke="#4a3b33" stroke-width="1.6"/><path d="M889,88 H911 M900,77 V99" stroke="#4a3b33" stroke-width="1"/>
+      ${win(814)}${win(952)}
+      <rect x="858" y="126" width="84" height="16" rx="7" fill="#fff6e4" stroke="#4a3b33" stroke-width="1.4"/>
+      ${stext(900, 137.5, 9.5, '#c4507a', 'さくらの おうち')}
+      <path d="M884,206 V178 C884,164 916,164 916,178 V206Z" fill="#f6a5c0" stroke="#4a3b33" stroke-width="1.8"/>
+      <circle cx="909" cy="190" r="1.8" fill="#4a3b33"/>
+      ${g.length ? `<g class="bob"><rect x="962" y="22" width="76" height="22" rx="11" fill="#fff" stroke="#4a3b33" stroke-width="1.4"/><path d="M972,43 L968,52 L980,43Z" fill="#fff" stroke="#4a3b33" stroke-width="1.4" stroke-linejoin="round"/><path d="M971,42 H981" stroke="#fff" stroke-width="2"/>${stext(1000, 37, 10, '#c4507a', '♪ おちゃかい')}</g>` : ''}</g>`;
+  }
+  function homesSvg() {
+    const sign = `<rect x="854" y="250" width="92" height="22" rx="8" fill="#fff6e4" stroke="#4a3b33" stroke-width="1.8"/>${stext(900, 266, 12, '#c4507a', 'おうちの まち')}`;
+    return `<use href="#tree" x="752" y="150"/><use href="#tree" x="1052" y="150"/>` + sign
+      + Object.keys(HOMES).map(k => S.homes[k] ? (k === 'sakura' ? bigHouse() : smallHouse(k)) : homeLot(k)).join('');
+  }
+  function furnSvg(k) {
+    const L = 'stroke="#4a3b33" stroke-width="1.2"';
+    const sh = (rx) => `<ellipse cx="0" cy="0" rx="${rx}" ry="3.5" fill="url(#shadowG)"/>`;
+    switch (k) {
+      case 'rug': return `<ellipse cx="0" cy="-8" rx="42" ry="13" fill="#f6b3c4" ${L}/><ellipse cx="0" cy="-8" rx="32" ry="8.5" fill="none" stroke="#fff" stroke-width="2" stroke-dasharray="4 3"/>`;
+      case 'bed': return `${sh(38)}<path d="M-30,-6 V0 M30,-6 V0" stroke="#8a5a3a" stroke-width="2.4"/>
+        <rect x="-32" y="-22" width="64" height="16" rx="4" fill="#fff" ${L}/><ellipse cx="-18" cy="-25" rx="9" ry="5" fill="#fff" ${L}/>
+        <path d="M-6,-23 H32 V-9 C32,-5 -6,-5 -6,-9Z" fill="#f8c6d4" ${L}/>
+        <g fill="#fff"><circle cx="4" cy="-16" r="1.5"/><circle cx="14" cy="-12" r="1.5"/><circle cx="24" cy="-17" r="1.5"/></g>
+        <rect x="-38" y="-44" width="10" height="44" rx="4" fill="#c99a6e" ${L}/><rect x="30" y="-28" width="8" height="28" rx="3" fill="#c99a6e" ${L}/>`;
+      case 'rtable': return `${sh(18)}<rect x="-2.5" y="-20" width="5" height="19" fill="#a0673e" ${L}/><ellipse cx="0" cy="-1" rx="9" ry="2.5" fill="#a0673e" ${L}/>
+        <path d="M-22,-22 Q-22,-14 -16,-13 Q-11,-16 -6,-12 Q0,-15 6,-12 Q11,-16 16,-13 Q22,-14 22,-22Z" fill="#f6b3c4" ${L}/>
+        <ellipse cx="0" cy="-22" rx="22" ry="6.5" fill="#fff6e4" ${L}/>`;
+      case 'chair': return `${sh(11)}<path d="M-8,-14 V0 M8,-14 V0" stroke="#a0673e" stroke-width="2.4" stroke-linecap="round"/>
+        <rect x="-9" y="-38" width="18" height="22" rx="6" fill="#f6c07e" ${L}/><rect x="-11" y="-18" width="22" height="6" rx="3" fill="#f2a65a" ${L}/>`;
+      case 'sofa': return `${sh(38)}<path d="M-28,-4 V0 M28,-4 V0" stroke="#6b564a" stroke-width="2.4"/>
+        <rect x="-30" y="-36" width="60" height="22" rx="9" fill="#9fd9b4" ${L}/><rect x="-28" y="-18" width="56" height="14" rx="5" fill="#bfe8cb" ${L}/>
+        <rect x="-38" y="-26" width="13" height="23" rx="6" fill="#9fd9b4" ${L}/><rect x="25" y="-26" width="13" height="23" rx="6" fill="#9fd9b4" ${L}/>`;
+      case 'cushion': return `${sh(11)}<use href="#berry" transform="translate(0,-17) scale(2.2)"/>`;
+      case 'lamp': return `${sh(9)}<circle cx="0" cy="-50" r="17" fill="#fff3b0" opacity=".45"/><rect x="-1.5" y="-46" width="3" height="44" fill="#a0673e"/><ellipse cx="0" cy="-2" rx="8" ry="2.6" fill="#a0673e" ${L}/>
+        <path d="M-11,-44 L-6,-60 H6 L11,-44Z" fill="#ffe9a0" ${L} stroke-linejoin="round"/>`;
+      case 'shelf': return `${sh(22)}<rect x="-20" y="-58" width="40" height="58" rx="3" fill="#c99a6e" ${L}/><rect x="-17" y="-55" width="34" height="52" fill="#a0673e"/>
+        <path d="M-17,-38 H17 M-17,-20 H17" stroke="#c99a6e" stroke-width="3"/>
+        ${[[-15, -54, 5, 15, '#ef5b6b'], [-9, -51, 4, 12, '#7cb8e0'], [-4, -53, 5, 14, '#ffd45e'], [2, -50, 4, 11, '#9fd9b4'], [-15, -35, 4, 14, '#f6a5c0'], [-10, -33, 6, 12, '#fff6e4'], [5, -36, 5, 15, '#9b6fc4'], [11, -33, 4, 12, '#f2a65a']].map(([x, y, w, hh, c]) => `<rect x="${x}" y="${y}" width="${w}" height="${hh}" rx="1" fill="${c}" stroke="#4a3b33" stroke-width=".6"/>`).join('')}
+        <circle cx="12" cy="-45" r="4" fill="#86c870" stroke="#4a3b33" stroke-width=".6"/><use href="#berry" transform="translate(-7,-9) scale(1.1)"/><use href="#egg" transform="translate(7,-9) scale(.8)"/>`;
+      case 'plant': return `${sh(9)}<path d="M0,-14 C-12,-20 -14,-34 -6,-38 C-4,-28 -2,-22 0,-14Z M0,-14 C12,-22 14,-36 6,-40 C4,-30 2,-22 0,-14Z M0,-14 C-2,-26 0,-38 2,-42 C4,-32 3,-24 0,-14Z" fill="#86c870" ${L}/>
+        <path d="M-9,-14 H9 L7,0 H-7Z" fill="#e8956b" ${L}/>`;
+      case 'kitchen': return `${sh(32)}<rect x="-30" y="-34" width="60" height="34" rx="2" fill="#fff" ${L}/><rect x="-32" y="-38" width="64" height="6" rx="2" fill="#9cc9e8" ${L}/>
+        <rect x="-26" y="-28" width="24" height="22" rx="2" fill="#f2efe8" ${L}/><path d="M-22,-24 H-6" stroke="#4a3b33" stroke-width="1.2" stroke-linecap="round"/>
+        <path d="M4,-28 H26 M4,-17 H26 M15,-28 V-6" stroke="#4a3b33" stroke-width="1"/><circle cx="12" cy="-22" r="1.2" fill="#4a3b33"/><circle cx="18" cy="-22" r="1.2" fill="#4a3b33"/>
+        <path d="M-24,-38 V-44 C-24,-50 -10,-50 -10,-44 V-38Z" fill="#ef5b6b" ${L}/><path d="M-27,-44 H-7" stroke="#4a3b33" stroke-width="1.4" stroke-linecap="round"/>
+        <use href="#cake" transform="translate(16,-44) scale(.8)"/>`;
+      case 'piano': return `${sh(32)}<path d="M-26,-6 V0 M26,-6 V0" stroke="#6b564a" stroke-width="2.4"/>
+        <rect x="-28" y="-50" width="56" height="44" rx="4" fill="#f6a5c0" ${L}/><rect x="-30" y="-27" width="60" height="9" rx="1.5" fill="#fff" ${L}/>
+        ${[-24, -16, -4, 4, 16, 24].map(x => `<rect x="${x - 1.5}" y="-27" width="3" height="5" fill="#4a3b33"/>`).join('')}
+        <rect x="-13" y="-46" width="26" height="13" rx="2" fill="#fff6e4" ${L}/><text x="0" y="-36" text-anchor="middle" font-size="9" fill="#4a3b33">♪♫</text>`;
+      case 'teaset': return `${sh(15)}<ellipse cx="0" cy="-2" rx="16" ry="3.5" fill="#e8b98a" ${L}/>
+        <path d="M-13,-13 C-17,-13 -18,-7 -13,-6" fill="none" stroke="#4a3b33" stroke-width="1.2"/>
+        <path d="M1,-10 L6,-16" stroke="#4a3b33" stroke-width="2.8" stroke-linecap="round"/><path d="M1,-10 L6,-16" stroke="#fff" stroke-width="1.2" stroke-linecap="round"/>
+        <ellipse cx="-5" cy="-10" rx="8.5" ry="7" fill="#fff" ${L}/><ellipse cx="-5" cy="-17" rx="4" ry="1.6" fill="#f6a5c0" ${L}/>
+        <path d="M8,-9 H15 L14,-4 H9Z" fill="#fff" ${L}/>`;
+      case 'cakestand': return `${sh(10)}<path d="M0,0 V-12" stroke="#c9a873" stroke-width="2.4"/><ellipse cx="0" cy="-1" rx="7" ry="2" fill="#e9e1d3" ${L}/>
+        <ellipse cx="0" cy="-12" rx="13" ry="3.2" fill="#fff" ${L}/><use href="#cake" transform="translate(0,-21) scale(1.3)"/>`;
+      case 'clock': return `<path d="M-10,-7 L-8,-19 L-2,-11Z M10,-7 L8,-19 L2,-11Z" fill="#f6a5c0" ${L} stroke-linejoin="round"/><circle r="12.5" fill="#fff" ${L}/><circle r="10" fill="none" stroke="#f6a5c0" stroke-width="2.4"/>
+        <path d="M0,0 V-7 M0,0 L5,2" stroke="#4a3b33" stroke-width="1.5" stroke-linecap="round"/><circle r="1.2" fill="#4a3b33"/>`;
+      case 'drawing': return `<rect x="-22" y="-17" width="44" height="34" rx="3" fill="#e8b98a" ${L}/><rect x="-18" y="-13" width="36" height="26" fill="#fffdf5"/>
+        <use href="#berry" transform="translate(-13,-7) scale(.5)"/><use href="#apple" transform="translate(0,-8) scale(.45)"/><use href="#grape" transform="translate(13,-7) scale(.45)"/>
+        <g transform="translate(-7,4) scale(.3)">${koke()}</g><g transform="translate(7,3) scale(.28)">${sakura()}</g>`;
+      case 'curtain': return `<rect x="-20" y="-18" width="40" height="34" rx="4" fill="#cfeaf7" ${L}/><path d="M0,-18 V16 M-20,-1 H20" stroke="#fff" stroke-width="2"/>
+        <path d="M-22,-20 C-14,-6 -20,6 -14,18 H-22Z M22,-20 C14,-6 20,6 14,18 H22Z" fill="#f6a5c0" ${L}/>
+        <path d="M-24,-22 H24 V-16 Q18,-12 12,-16 Q6,-12 0,-16 Q-6,-12 -12,-16 Q-18,-12 -24,-16Z" fill="#f8c6d4" ${L}/>`;
+    }
+    return '';
+  }
+  function locoSvg() {
+    // local box: 0..64 wide, 0..60 tall, wheels sit on y=58
+    return `<g class="bob" opacity=".85"><circle cx="12" cy="-6" r="5" fill="#fff"/><circle cx="20" cy="-12" r="6.5" fill="#fff"/><circle cx="6" cy="-14" r="4" fill="#fff"/></g>
+      <rect x="7" y="4" width="11" height="14" rx="2" fill="#c99a6e" stroke="#4a3b33" stroke-width="1.6"/><rect x="5" y="2" width="15" height="4" rx="2" fill="#a0673e" stroke="#4a3b33" stroke-width="1.4"/>
+      <path d="M34,10 L37,0 L44,8Z M50,8 L57,0 L60,10Z" fill="#f6a5c0" stroke="#4a3b33" stroke-width="1.5" stroke-linejoin="round"/>
+      <rect x="32" y="6" width="30" height="30" rx="5" fill="#fff" stroke="#4a3b33" stroke-width="1.8"/>
+      <rect x="38" y="12" width="18" height="12" rx="3" fill="#cfeaf7" stroke="#4a3b33" stroke-width="1.4"/>
+      <rect x="2" y="18" width="62" height="32" rx="7" fill="#f6a5c0" stroke="#4a3b33" stroke-width="1.8"/>
+      <path d="M6,30 H60" stroke="#fff" stroke-width="2.4" opacity=".8"/>
+      <circle cx="6" cy="38" r="3.4" fill="#ffe08a" stroke="#4a3b33" stroke-width="1.2"/>
+      <circle cx="16" cy="25" r="1.5" fill="#4a3b33"/><circle cx="26" cy="25" r="1.5" fill="#4a3b33"/><path d="M19.5,27.5 Q21,29.5 22.5,27.5" fill="none" stroke="#4a3b33" stroke-width="1" stroke-linecap="round"/>
+      <ellipse cx="12" cy="28" rx="2.6" ry="1.5" fill="#ff8fab" opacity=".8"/><ellipse cx="30" cy="28" rx="2.6" ry="1.5" fill="#ff8fab" opacity=".8"/>
+      <circle cx="16" cy="52" r="7" fill="#6b564a" stroke="#4a3b33" stroke-width="1.4"/><circle cx="16" cy="52" r="2.4" fill="#e9e1d3"/>
+      <circle cx="48" cy="52" r="7" fill="#6b564a" stroke="#4a3b33" stroke-width="1.4"/><circle cx="48" cy="52" r="2.4" fill="#e9e1d3"/>`;
+  }
+  function carSvg(c, i) {
+    const col = ['#ffe08a', '#9fd9b4', '#9cc9e8'][i % 3];
+    return `<rect x="-6" y="34" width="8" height="5" fill="#8a776a"/>
+      <rect x="0" y="16" width="66" height="34" rx="6" fill="${col}" stroke="#4a3b33" stroke-width="1.8"/>
+      <rect x="0" y="12" width="66" height="7" rx="3" fill="#fff6e4" stroke="#4a3b33" stroke-width="1.4"/>
+      <rect x="15" y="22" width="36" height="22" rx="5" fill="#fff" stroke="#4a3b33" stroke-width="1.4"/>
+      <g transform="translate(33,33)">${GOODS[c.k].icon}</g>
+      <circle cx="14" cy="52" r="6" fill="#6b564a" stroke="#4a3b33" stroke-width="1.4"/><circle cx="52" cy="52" r="6" fill="#6b564a" stroke="#4a3b33" stroke-width="1.4"/>
+      ${c.done
+        ? '<circle cx="60" cy="14" r="9" fill="#9fdc8a" stroke="#4a3b33" stroke-width="1.4"/><path d="M55.5,14 L59,17.5 L64.5,10.5" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>'
+        : `<circle cx="60" cy="14" r="9" fill="#fff" stroke="#4a3b33" stroke-width="1.4"/><text x="60" y="18" text-anchor="middle" font-family="Zen Maru Gothic, sans-serif" font-weight="700" font-size="10.5" fill="#4a3b33">${c.n}</text>`}`;
+  }
+  function stationSvg() {
+    let sl = '';
+    for (let x = 364; x < 718; x += 14) sl += `<rect x="${x}" y="440" width="7" height="9" rx="1.5" fill="#c99a6e"/>`;
+    const cars = S.train?.cars;
+    const train = cars ? `<g class="tap" id="trainTap" tabindex="0" role="button" aria-label="れっしゃ"><ellipse cx="532" cy="442" rx="166" ry="7" fill="url(#shadowG)"/><g transform="translate(376,384)">${locoSvg()}</g>` + cars.map((c, i) => `<g transform="translate(${452 + i * 74},384)">${carSvg(c, i)}</g>`).join('') + '</g>' : '';
+    return `<g class="tap" id="stationTap" tabindex="0" role="button" aria-label="ねこうさえき">
+      <rect x="362" y="438" width="356" height="12" fill="#e4d3b4"/>${sl}
+      <path d="M362,442 H718" stroke="#8a776a" stroke-width="2.6"/>
+      <rect class="focus-ring" x="446" y="392" width="190" height="40" rx="6" fill="#fff6e4" stroke="#4a3b33" stroke-width="1.8"/>
+      <rect x="447" y="393" width="188" height="38" rx="5" fill="url(#wallShade)"/><rect x="447" y="393" width="188" height="38" rx="5" fill="url(#aoG)"/><path d="M447,394 H635" stroke="#fff" stroke-width="2" opacity=".8"/>
+      <path d="M458,392 V352 M624,392 V352" stroke="#a0673e" stroke-width="4" stroke-linecap="round"/>
+      <ellipse cx="548" cy="432" rx="104" ry="8" fill="url(#shadowG)"/>
+      <path d="M440,356 H642 V348 C642,340 440,340 440,348Z" fill="#f6a5c0" stroke="#4a3b33" stroke-width="1.8" stroke-linejoin="round"/>
+      <path d="M441,355 H641 V348 C641,341 441,341 441,348Z" fill="url(#roofLight)"/>
+      <path d="M440,356 Q450,364 460,356 Q470,364 480,356 Q490,364 500,356 Q510,364 520,356 Q530,364 540,356 Q550,364 560,356 Q570,364 580,356 Q590,364 600,356 Q610,364 620,356 Q630,364 642,356" fill="#fff" stroke="#4a3b33" stroke-width="1.4"/>
+      <rect x="500" y="366" width="82" height="18" rx="8" fill="#fff" stroke="#4a3b33" stroke-width="1.5"/>
+      ${stext(541, 379, 10.5, '#c4507a', 'ねこうさえき')}</g>${train}`;
+  }
+  function mystery() {
+    return `<path d="M-16,8 C-17,-8 -10,-14 0,-14 C10,-14 17,-8 16,8 C15,15 -15,15 -16,8Z" fill="#d8cfc6" stroke="#b3a69a" stroke-width="1.6"/>
+      <path d="M-12,-8 L-9,-22 L-3,-13Z M12,-8 L9,-22 L3,-13Z" fill="#d8cfc6" stroke="#b3a69a" stroke-width="1.6" stroke-linejoin="round"/>
+      <text x="0" y="6" text-anchor="middle" font-size="16" font-family="Zen Maru Gothic, sans-serif" font-weight="700" fill="#fff">？</text>`;
+  }
+
+  // ---------- plots ----------
+  function plotSvg(p, i) {
+    const c = i % COLS, r = Math.floor(i / COLS);
+    const x = PX + c * (PW + GX), y = PY + r * (PH + GY);
+    const cx = x + PW / 2, cy = y + PH / 2;
+    if (!p.open) {
+      const isNext = S.plots.findIndex(q => !q.open) === i;
+      if (!isNext) return `<g><rect x="${x}" y="${y}" width="${PW}" height="${PH}" rx="12" fill="#c4dd97" opacity=".55"/></g>`;
+      const cost = nextPlotPrice();
+      return `<g class="tap" data-i="${i}" tabindex="0" role="button" aria-label="はたけをふやす ${cost}コイン">
+        <rect class="focus-ring" x="${x}" y="${y}" width="${PW}" height="${PH}" rx="12" fill="#e5f1cc" stroke="#9cb977" stroke-width="2" stroke-dasharray="5 4"/>
+        <text x="${cx}" y="${cy - 2}" text-anchor="middle" font-size="20" font-weight="700" fill="#7f9c5c" font-family="Zen Maru Gothic, sans-serif">＋</text>
+        <text x="${cx}" y="${cy + 15}" text-anchor="middle" font-size="10.5" font-weight="700" fill="#6c8a4b" font-family="Zen Maru Gothic, sans-serif">${cost}コイン</text></g>`;
+    }
+    const pr = progress(p);
+    let plant = '';
+    if (pr >= 1) {
+      plant = `<g class="sway"><ellipse cx="${cx}" cy="${cy + 3}" rx="20" ry="11" fill="#86c870" stroke="#4a3b33" stroke-width="1.5"/>
+        <path d="M${cx - 12},${cy - 2} q6,-8 12,0 q6,-8 12,0" fill="#9fd486" stroke="#4a3b33" stroke-width="1.3"/>
+        <use href="#berry" transform="translate(${cx - 10},${cy + 4}) scale(1.25)"/>
+        <use href="#berry" transform="translate(${cx + 1},${cy + 9}) scale(1.25)"/>
+        <use href="#berry" transform="translate(${cx + 11},${cy + 3}) scale(1.25)"/></g>
+        <g class="twinkle"><path d="M${cx + 22},${cy - 14} l2,5 l5,2 l-5,2 l-2,5 l-2,-5 l-5,-2 l5,-2Z" fill="#fff6a8" stroke="#e0b84a" stroke-width=".8"/></g>`;
+    } else if (pr >= 0.45) {
+      plant = `<g class="sway"><ellipse cx="${cx}" cy="${cy + 4}" rx="15" ry="8" fill="#94d07c" stroke="#4a3b33" stroke-width="1.4"/>
+        <path d="M${cx - 8},${cy} q4,-7 8,0 q4,-7 8,0" fill="#a9db93" stroke="#4a3b33" stroke-width="1.2"/>
+        <use href="#flower" transform="translate(${cx - 6},${cy - 2}) scale(.9)"/>
+        <use href="#flower" transform="translate(${cx + 7},${cy + 2}) scale(.9)"/>
+        ${pr >= 0.75 ? `<path d="M${cx},${cy + 9} c3,0 3,4 0,6 c-3,-2 -3,-6 0,-6Z" fill="#b8e09a" stroke="#4a3b33" stroke-width=".9"/>` : ''}</g>`;
+    } else if (pr >= 0) {
+      plant = `<g class="sway"><path d="M${cx},${cy + 8} V${cy - 2}" stroke="#5f9e4a" stroke-width="2" stroke-linecap="round"/>
+        <path d="M${cx},${cy - 1} C${cx - 9},${cy - 6} ${cx - 10},${cy + 2} ${cx},${cy + 1}Z M${cx},${cy - 1} C${cx + 9},${cy - 6} ${cx + 10},${cy + 2} ${cx},${cy + 1}Z" fill="#9fd486" stroke="#4a3b33" stroke-width="1.1"/></g>`;
+    }
+    const bar = pr >= 0 && pr < 1
+      ? `<rect x="${x + 10}" y="${y + PH - 9}" width="${PW - 20}" height="5" rx="2.5" fill="#a77b53"/>
+         <rect x="${x + 10}" y="${y + PH - 9}" width="${(PW - 20) * pr}" height="5" rx="2.5" fill="#b9ec8f"/>` : '';
+    const label = pr >= 1 ? 'しゅうかくする' : pr >= 0 ? 'そだっているよ' : 'いちごのたねをまく';
+    return `<g class="tap" data-i="${i}" tabindex="0" role="button" aria-label="${label}">
+      <rect x="${x + 2}" y="${y + 5}" width="${PW}" height="${PH}" rx="12" fill="url(#shadowG)"/>
+      <rect x="${x}" y="${y + 4}" width="${PW}" height="${PH}" rx="12" fill="#9c6f4a" stroke="#4a3b33" stroke-width="1.8"/>
+      <rect class="focus-ring" x="${x}" y="${y}" width="${PW}" height="${PH}" rx="12" fill="url(#soilG)" stroke="#4a3b33" stroke-width="1.8"/>
+      <path d="M${x + 8},${y + 3} H${x + PW - 8}" stroke="#e6c296" stroke-width="2" stroke-linecap="round" opacity=".8"/>
+      <path d="M${x + 10},${y + 15} H${x + PW - 10} M${x + 10},${y + 27} H${x + PW - 10} M${x + 10},${y + 39} H${x + PW - 10}" stroke="#b5845a" stroke-width="2.4" stroke-linecap="round"/>
+      ${plant}${bar}</g>`;
+  }
+
+  // ---------- render ----------
+  // only rebuild SVG parts when they change, so the little animations keep playing
+  let pondSig = '', decoSig = '', orderSig = '';
+  let playWho = null, playIdx = -1, playUntil = 0;
+  function pickPlay() {
+    playUntil = Date.now() + 20000;
+    const spots = S.decos.map((d, i) => [d, i]).filter(([d]) => DECOS.find(x => x.k === d.k)?.play);
+    const who = ['sakura', 'tonsuke', 'shirousa', 'chausa'].filter(k => S[k] === 'friend' && !away(k));
+    if (!spots.length || !who.length || Math.random() < .25) { playWho = null; playIdx = -1; return; }
+    playWho = who[Math.floor(Math.random() * who.length)];
+    playIdx = spots[Math.floor(Math.random() * spots.length)][1];
+  }
+  let stationSig = '', homesSig = '', fieldSig = '', castSig = '', standSig = -1, coopSig = '', bakerySig = '', orchardSig = '';
+  const tstage = (t, k) => { const pr = treeProg(t, k); return pr < 0 ? 'e' : pr >= 1 ? 'r' : Math.floor(pr * 20); };
+  const stage = (p) => { const pr = progress(p); return pr < 0 ? 'e' : pr >= 1 ? 'r' : Math.floor(pr * 20); };
+  function render() {
+    const fs = S.plots.map(p => p.open ? stage(p) : 'x').join(',') + '|' + S.coins;
+    if (fs !== fieldSig) { fieldSig = fs; $('field').innerHTML = S.plots.map(plotSvg).join(''); }
+    const cs = [S.coop.owned, S.coop.hens, Math.min(S.coop.eggs, 9)].join();
+    if (cs !== coopSig) { coopSig = cs; $('coop').innerHTML = coopSvg(); }
+    const left = bakeLeft();
+    const bs = [S.bakery.owned, S.coop.owned, left == null ? 'i' : left <= 0 ? 'd' : Math.floor((1 - left / bakeMs()) * 20)].join();
+    if (bs !== bakerySig) { bakerySig = bs; $('bakery').innerHTML = bakerySvg(); }
+    const os = [S.orchard.owned, ...S.orchard.apples.map(t => tstage(t, 'a')), ...S.orchard.grapes.map(t => tstage(t, 'g'))].join();
+    if (os !== orchardSig) { orchardSig = os; $('orchard').innerHTML = orchardSvg(); }
+    const hs = Object.keys(HOMES).map(k => (S.homes[k] ? 'b' : '') + S[k]).join() + (S.homes.sakura?.guests || []).length;
+    if (hs !== homesSig) { homesSig = hs; $('homes').innerHTML = homesSvg(); }
+    const st = S.train?.cars ? S.train.cars.map(c => c.k + c.done).join() : 'x';
+    if (st !== stationSig) { stationSig = st; $('station').innerHTML = stationSvg(); }
+    const ps = [S.pond.owned, S.orchard.owned].join();
+    if (ps !== pondSig) { pondSig = ps; $('pond').innerHTML = pondSvg(); }
+    const ds = S.decos.length + '|' + (S.decos.at(-1)?.x ?? '') + '|' + S.decoInv.__rev;
+    if (ds !== decoSig) { decoSig = ds; $('decos').innerHTML = S.decos.map((d, i) => `<g class="deco" data-deco="${i}" transform="translate(${d.x},${d.y}) scale(1.4)">${decoSvg(d.k)}</g>`).join(''); }
+    renderOrders();
+    $('fishChip').hidden = !S.pond.owned; $('fishN').textContent = FISH.reduce((t, f) => t + (f.price ? S[f.k] || 0 : 0), 0);
+    $('appleChip').hidden = !S.orchard.owned; $('apples').textContent = S.appleStock;
+    $('grapeChip').hidden = !S.orchard.owned; $('grapes').textContent = S.grapeStock;
+    $('coins').textContent = S.coins;
+    $('stock').textContent = S.stock;
+    $('eggChip').hidden = !S.coop.owned; $('eggs').textContent = S.eggStock;
+    $('cakeChip').hidden = !S.bakery.owned; $('cakes').textContent = S.cakes;
+    const sell = $('sell');
+    const total = Object.keys(GOODS).reduce((t, k) => t + (S[k] || 0) * GOODS[k].unit(), 0);
+    sell.disabled = total === 0;
+    $('sellAmt').hidden = !total; $('sellAmt').textContent = `+${total}`;
+    const ready = S.orders.filter(canFill).length, on = $('orderN');
+    questDay();
+    const qn = questReady(), qb = $('questN'); qb.hidden = !qn; qb.textContent = qn;
+    const tb = $('trainN'), cars = S.train?.cars, loadable = cars ? cars.filter(c => !c.done && (S[c.k] || 0) >= c.n).length : 0;
+    tb.hidden = !cars; tb.textContent = loadable ? `${loadable}こ OK` : 'きたよ'; tb.classList.toggle('ready', loadable > 0);
+    on.hidden = !S.orders.length; on.textContent = ready ? `${ready}こ OK` : S.orders.length; on.classList.toggle('ready', ready > 0);
+    // fruit on the stand grows with stock
+    const n = Math.min(S.stock, 12);
+    if (n !== standSig) { standSig = n;
+    let f = '';
+    for (let k = 0; k < n; k++) f += `<use href="#berry" transform="translate(${126 + k * 9.5},${184 - (k % 2) * 3}) scale(1.05)"/>`;
+    $('standFruit').innerHTML = f; }
+    if (Date.now() > playUntil) pickPlay();
+    const castKey = [S.sakura, S.tonsuke, S.shirousa, S.chausa, playWho, playIdx, ...(S.homes.sakura?.guests || [])].join();
+    if (castSig !== castKey) { castSig = castKey;
+    // friends invited to さくらの おうち are inside, so they are not drawn outside
+    let cast = away('koke') ? '' : `<g transform="translate(272,217)" class="tap" id="kokeTap" role="button" tabindex="0" aria-label="コケ"><g class="squish">${koke()}</g></g>`;
+    const playing = (who) => playWho === who && S.decos[playIdx];
+    const at = (who, def) => { const d = playing(who); return d ? `translate(${d.x + 12},${d.y - 6}) scale(.75)` : def; };
+    if (S.sakura === 'friend') cast += `<g transform="${at('sakura', 'translate(58,224)')}" class="tap" id="sakuraTap" role="button" tabindex="0" aria-label="さくら"><g class="hop">${sakura()}</g></g>`;
+    else if (S.sakura === 'visiting') cast += `<g transform="translate(340,214) scale(.8)" opacity=".9"><g class="hop">${sakura()}</g></g>`;
+    if (S.tonsuke === 'friend') { if (!away('tonsuke')) cast += `<g transform="${at('tonsuke', 'translate(150,228) scale(.9)')}" class="tap" id="tonTap" role="button" tabindex="0" aria-label="とんすけ"><g class="squish">${tonsuke()}</g></g>`; }
+    else if (S.tonsuke === 'visiting') cast += `<g transform="translate(20,232) scale(.75)" opacity=".9"><g class="squish">${tonsuke()}</g></g>`;
+    if (S.shirousa === 'friend') { if (!away('shirousa')) cast += `<g transform="${at('shirousa', 'translate(1190,228)')}" class="tap" id="shiroTap" role="button" tabindex="0" aria-label="しろうさ"><g class="hop">${shirousa()}</g></g>`; }
+    else if (S.shirousa === 'visiting') cast += `<g transform="translate(1420,228) scale(.8)" opacity=".9"><g class="hop">${shirousa()}</g></g>`;
+    if (S.chausa === 'friend') { if (!away('chausa')) cast += `<g transform="${at('chausa', 'translate(1340,230)')}" class="tap" id="chaTap" role="button" tabindex="0" aria-label="ちゃうさ"><g class="squish">${chausa()}</g></g>`; }
+    else if (S.chausa === 'visiting') cast += `<g transform="translate(1420,232) scale(.8)" opacity=".9"><g class="squish">${chausa()}</g></g>`;
+    $('cast').innerHTML = cast; }
+    $('hint').textContent = hint();
+  }
+
+  function hint() {
+    const open = S.plots.filter(p => p.open);
+    const bl = bakeLeft();
+    if (bl != null && bl <= 0) return 'ケーキが やけたよ！にゃんケーキを タップして うけとろう';
+    if (open.some(p => progress(p) >= 1)) return 'いちごが あかくなったよ！タップして しゅうかくしよう';
+    const ripeTree = [...S.orchard.apples.map(t => treeProg(t, 'a')), ...S.orchard.grapes.map(t => treeProg(t, 'g'))].some(p => p >= 1);
+    if (ripeTree) return 'かじゅえんの くだものが みのったよ！「かじゅえん」へ いって しゅうかくしよう';
+    if (S.coop.eggs > 0) return 'にわとりごやに たまごが あるよ。タップして あつめよう';
+    if (S.bakery.owned && bl == null && canBake()) return `にゃんケーキを タップして いちごケーキを やこう（いちご${CAKE_BERRIES}こ＋たまご${CAKE_EGGS}こ）`;
+    if (!S.coop.owned && S.coins >= COOP_PRICE) return `${COOP_PRICE}コインで にわとりごやが たてられるよ（みぎの おみせどおり）`;
+    if (S.coop.owned && !S.bakery.owned && S.coins >= BAKERY_PRICE) return `${BAKERY_PRICE}コインで にゃんケーキが たてられるよ（おみせどおり）`;
+    const hk = Object.keys(HOMES).find(k => S[k] === 'friend' && !S.homes[k]);
+    if (hk && S.coins >= HOMES[hk].price) return `${HOMES[hk].price}コインで ${HOMES[hk].name}の おうちが たてられるよ（おうちの まち）`;
+    if (S.train?.cars?.some(c => !c.done && (S[c.k] || 0) >= c.n)) return 'れっしゃに つめる ものが あるよ！「れっしゃ」を おしてね';
+    if (questReady()) return 'おねがいが かなったよ！「おねがい」で ごほうびを うけとろう';
+    if (S.orders.some(canFill)) return 'ちゅうもんの ものが そろったよ！したの「とどける」を おしてね';
+    if (S.orchard.owned && !S.pond.owned && S.coins >= POND_PRICE) return `${POND_PRICE}コインで いけの ある とちが かえるよ（したの「いけ」）`;
+    if (!S.orchard.owned && S.coins >= LAND_PRICE) return `${LAND_PRICE}コインで かじゅえんの とちが かえるよ（したの「かじゅえん」）`;
+    if (S.cakes > 0) return 'ケーキは 1こ ' + CAKE_PRICE + 'コインで うれるよ。「うる」ボタンから どうぞ';
+    if (S.stock > 0) return S.coop.owned ? '「うる」ボタンで いちごや たまごを うろう' : 'くだものやさんを タップするか、ボタンで いちごを うろう';
+    if (open.some(p => p.at == null)) return S.coins >= SEED_COST
+      ? `あいている はたけを タップして たねを まこう（${SEED_COST}コイン）`
+      : 'コインが たりないよ。いちごが そだつのを まとう';
+    const cost = nextPlotPrice();
+    if (cost && S.coins >= cost) return `${cost}コインで はたけを ふやせるよ（＋のマス）`;
+    const left = Math.min(...open.map(p => growMs() - (Date.now() - p.at)));
+    return `いちごが そだっているよ。あと ${fmt(left)}`;
+  }
+  function fmt(ms) {
+    const s = Math.max(0, Math.ceil(ms / 1000)), m = Math.floor(s / 60);
+    return m ? `${m}ふん${String(s % 60).padStart(2, '0')}びょう` : `${s}びょう`;
+  }
+
+  let toastTimer;
+  function toast(msg) {
+    const t = $('toast'); t.textContent = msg; t.classList.add('show');
+    clearTimeout(toastTimer); toastTimer = setTimeout(() => t.classList.remove('show'), 2200);
+  }
+  function pop(id) { const el = $(id); el.classList.remove('pop'); void el.offsetWidth; el.classList.add('pop'); }
+
+  // ---------- actions ----------
+  function tapPlot(i) {
+    const p = S.plots[i];
+    if (!p.open) {
+      const cost = nextPlotPrice();
+      if (S.coins < cost) { toast(`あと ${cost - S.coins}コイン で ふやせるよ`); return; }
+      S.coins -= cost; p.open = true; toast('はたけが ひろがった！'); pop('coinChip');
+      if (S.tonsuke === 'none' && S.plots.filter(q => q.open).length >= TONSUKE_AFTER_PLOTS) { S.tonsuke = 'visiting'; setTimeout(showTonVisit, 900); }
+    } else if (p.at == null) {
+      if (S.coins < SEED_COST) { toast('コインが たりないよ'); return; }
+      S.coins -= SEED_COST; p.at = Date.now(); toast('いちごの たねを まいたよ'); pop('coinChip');
+    } else if (progress(p) >= 1) {
+      p.at = null; S.stock += BERRIES_PER_HARVEST; see('stock'); qAdd('berry', BERRIES_PER_HARVEST); toast(`いちごを ${BERRIES_PER_HARVEST}こ しゅうかく！`); pop('stockChip');
+    } else {
+      toast(`あと ${fmt(growMs() - (Date.now() - p.at))} で みのるよ`); return;
+    }
+    save(); render();
+  }
+
+  function tapCoop() {
+    const c = S.coop;
+    if (!c.owned) {
+      if (S.coins < COOP_PRICE) { toast(`にわとりごやは ${COOP_PRICE}コイン。あと ${COOP_PRICE - S.coins}コイン`); return; }
+      S.coins -= COOP_PRICE; c.owned = true; c.hens = 1; c.eggs = 0; c.last = Date.now();
+      pop('coinChip'); save(); render();
+      openModal(`<h2>にわとりごやが できた！</h2>
+        <svg class="portrait" viewBox="-20 -20 40 36" aria-hidden="true">${hen()}</svg>
+        <p>にわとりが ${Math.round(EGG_MS / 60000) || 1}ふんに 1こ たまごを うむよ。<br>たまごは にわとりごやを タップして あつめてね。</p>
+        <button class="plain" type="button" id="ok3">わかった！</button>`);
+      $('ok3').addEventListener('click', closeModal);
+      return;
+    }
+    if (c.eggs > 0) {
+      const n = c.eggs; S.eggStock += n; see('eggStock'); qAdd('egg', n); c.eggs = 0; c.last = Date.now();
+      toast(`たまごを ${n}こ あつめたよ`); pop('eggChip'); save(); render(); return;
+    }
+    const next = HEN_PRICES[c.hens - 1];
+    openModal(`<h2>にわとりごや</h2>
+      <svg class="portrait" viewBox="-20 -20 40 36" aria-hidden="true">${hen()}</svg>
+      <p>にわとり：${c.hens}わ<br>つぎの たまごまで あと ${fmt(eggLeft())}</p>
+      ${next ? `<button class="primary" type="button" id="buyHen" ${S.coins < next ? 'disabled' : ''}>にわとりを ふやす（${next}コイン）</button>` : '<p class="note">にわとりごやは いっぱいだよ</p>'}
+      <button class="plain" type="button" id="close2">とじる</button>`);
+    $('close2').addEventListener('click', closeModal);
+    $('buyHen')?.addEventListener('click', () => {
+      if (S.coins < next) return;
+      S.coins -= next; c.hens += 1; pop('coinChip'); save(); render(); closeModal(); toast('にわとりが ふえたよ！');
+    });
+  }
+
+  function tapBakery() {
+    const b = S.bakery;
+    if (!b.owned) {
+      if (!S.coop.owned) { toast('さきに にわとりごやを たてよう'); return; }
+      if (S.coins < BAKERY_PRICE) { toast(`にゃんケーキは ${BAKERY_PRICE}コイン。あと ${BAKERY_PRICE - S.coins}コイン`); return; }
+      S.coins -= BAKERY_PRICE; b.owned = true; pop('coinChip'); save(); render();
+      openModal(`<h2>にゃんケーキ かいてん！</h2>
+        <svg class="portrait" viewBox="-12 -12 24 22" aria-hidden="true"><use href="#cake"/></svg>
+        <p>いちご ${CAKE_BERRIES}こ と たまご ${CAKE_EGGS}こ で、ねこの いちごケーキが やけるよ。<br>ケーキは 1こ ${CAKE_PRICE}コインで うれるよ。</p>
+        <button class="plain" type="button" id="ok4">やいてみる！</button>`);
+      $('ok4').addEventListener('click', closeModal);
+      return;
+    }
+    const left = bakeLeft();
+    if (left != null && left <= 0) { b.at = null; S.cakes += 1; see('cakes'); qAdd('cake', 1); toast('いちごケーキが やけた！'); pop('cakeChip'); save(); render(); return; }
+    if (left != null) { toast(`ケーキが やけるまで あと ${fmt(left)}`); return; }
+    if (!canBake()) { toast(`いちご ${CAKE_BERRIES}こ と たまご ${CAKE_EGGS}こ で やけるよ`); return; }
+    S.stock -= CAKE_BERRIES; S.eggStock -= CAKE_EGGS; b.at = Date.now();
+    toast('ケーキを やきはじめたよ'); save(); render();
+  }
+
+  function tapLand() {
+    if (S.coins < LAND_PRICE) { toast(`となりの とちは ${LAND_PRICE}コイン。あと ${LAND_PRICE - S.coins}コイン`); return; }
+    S.coins -= LAND_PRICE; S.orchard.owned = true; pop('coinChip'); save(); render();
+    openModal(`<h2>かじゅえんが できた！</h2>
+      <svg class="portrait" viewBox="-14 -12 28 22" aria-hidden="true"><use href="#apple" transform="translate(-6,0)"/><use href="#grape" transform="translate(7,0)"/></svg>
+      <p>りんごの なえ（${APPLE_TREE}コイン）や ぶどうの なえ（${GRAPE_VINE}コイン）を うえよう。<br>いちど うえたら、しゅうかく しても また みのるよ。</p>
+      <button class="plain" type="button" id="ok5">うえてみる！</button>`);
+    $('ok5').addEventListener('click', () => {
+      closeModal();
+      if (S.shirousa === 'none') { S.shirousa = 'visiting'; save(); render(); setTimeout(() => showRabbitVisit('shirousa'), 500); }
+    });
+  }
+  function tapTree(code) {
+    const kind = code[0], t = slotOf(code);
+    const cost = kind === 'a' ? APPLE_TREE : GRAPE_VINE, name = kind === 'a' ? 'りんご' : 'ぶどう';
+    if (!t.p) {
+      if (S.coins < cost) { toast(`${name}の なえは ${cost}コイン。あと ${cost - S.coins}コイン`); return; }
+      S.coins -= cost; t.p = true; t.at = Date.now(); pop('coinChip'); toast(`${name}の なえを うえたよ`);
+    } else if (treeProg(t, kind) >= 1) {
+      const n = kind === 'a' ? APPLE_YIELD : GRAPE_YIELD;
+      if (kind === 'a') { S.appleStock += n; see('appleStock'); pop('appleChip'); qAdd('apple', n); } else { S.grapeStock += n; see('grapeStock'); pop('grapeChip'); qAdd('grape', n); }
+      t.at = Date.now(); toast(`${name}を ${n}こ しゅうかく！`);
+      if (kind === 'g' && S.chausa === 'none') { S.chausa = 'visiting'; setTimeout(() => showRabbitVisit('chausa'), 900); }
+    } else {
+      toast(`${name}が みのるまで あと ${fmt(treeMs(kind) - (Date.now() - t.at))}`); return;
+    }
+    save(); render();
+  }
+
+  function sellButton() {
+    if (!S.coop.owned && !S.orchard.owned && !S.pond.owned) return sellAll();
+    showSell();
+  }
+  function showSell() {
+    const rows = Object.entries(GOODS).filter(([, g]) => g.on()).map(([k, g]) => ({ k, name: g.name, icon: g.icon, unit: g.unit() }));
+    const html = rows.map(r => `<div class="sell-row"><svg viewBox="-12 -12 24 24" aria-hidden="true">${r.icon}</svg>
+      <div class="nm"><b>${r.name}</b><small>${S[r.k]}こ × ${r.unit}コイン</small></div>
+      <button type="button" data-sell="${r.k}" ${S[r.k] ? '' : 'disabled'}>うる +${S[r.k] * r.unit}</button></div>`).join('');
+    openModal(`<h2>うる</h2><div class="sell-list" style="max-height:52vh;overflow-y:auto">${html}</div>
+      ${S.bakery.owned ? `<p class="note">ケーキには いちご${CAKE_BERRIES}こ と たまご${CAKE_EGGS}こ を つかうよ。のこして おこう</p>` : ''}
+      <button class="plain" type="button" id="close3">とじる</button>`);
+    $('close3').addEventListener('click', closeModal);
+    $('modal').querySelectorAll('[data-sell]').forEach(btn => btn.addEventListener('click', () => {
+      const k = btn.dataset.sell, row = rows.find(r => r.k === k);
+      if (k === 'stock') sellAll();
+      else { const earn = S[k] * row.unit; S.coins += earn; qAdd('sell', earn); S[k] = 0; pop('coinChip'); toast(`+${earn}コイン！`); save(); render(); }
+      if (anyVisiting()) return;
+      showSell();
+    }));
+  }
+
+  function sellAll() {
+    if (!S.stock) { toast('うる いちごが ないよ'); return; }
+    const earn = S.stock * price();
+    S.totalSold += S.stock; S.coins += earn; qAdd('sell', earn); S.stock = 0;
+    toast(S.sakura === 'friend' ? `さくらが うってくれたよ　+${earn}コイン` : `+${earn}コイン！`);
+    pop('coinChip');
+    if (S.sakura === 'none' && S.totalSold >= SAKURA_AFTER_SOLD) { S.sakura = 'visiting'; setTimeout(showVisit, 900); }
+    save(); render();
+  }
+
+  // ---------- modals ----------
+  function openModal(html, cls) { $('modal').className = 'modal' + (cls ? ' ' + cls : ''); $('modal').innerHTML = html; $('modalBack').hidden = false; $('modal').querySelector('button')?.focus(); }
+  function closeModal() { $('modalBack').hidden = true; }
+  $('modalBack').addEventListener('click', (e) => { if (e.target.id === 'modalBack' && !anyVisiting()) closeModal(); });
+
+  function showVisit() {
+    openModal(`<h2>だれか きたよ！</h2>
+      <svg class="portrait" viewBox="-30 -29 60 52" aria-hidden="true">${sakura()}</svg>
+      <p class="say">「こんにちは、わたし <b>さくら</b>！<br>いちごの あまい においが して きちゃった。<br>ここで いっしょに くらしても いい？」</p>
+      <button class="primary" type="button" id="welcome">いっしょに くらそう</button>`);
+    $('welcome').addEventListener('click', () => {
+      S.sakura = 'friend'; save(); render();
+      openModal(`<h2>さくらが なかまに なった！</h2>
+        <svg class="portrait" viewBox="-30 -29 60 52" aria-hidden="true">${sakura()}</svg>
+        <p>さくらは <b>おみせばん</b> が とくい。<br>いちごが 1こ ${BASE_PRICE + 1}コインで うれるように なったよ。</p>
+        <button class="plain" type="button" id="ok">やったね！</button>`);
+      $('ok').addEventListener('click', closeModal);
+    });
+  }
+
+  function showTonVisit() {
+    openModal(`<h2>だれか きたよ！</h2>
+      <svg class="portrait" viewBox="-28 -24 56 46" aria-hidden="true">${tonsuke()}</svg>
+      <p class="say">「ぶひっ、ぼく <b>とんすけ</b>！<br>こんなに ひろい はたけ、はじめて みたよ。<br>ぼくも てつだって いい？」</p>
+      <button class="primary" type="button" id="welcome2">いっしょに くらそう</button>`);
+    $('welcome2').addEventListener('click', () => {
+      S.tonsuke = 'friend'; save(); render();
+      openModal(`<h2>とんすけが なかまに なった！</h2>
+        <svg class="portrait" viewBox="-28 -24 56 46" aria-hidden="true">${tonsuke()}</svg>
+        <p>とんすけは <b>はたけしごと</b> が とくい。<br>いちごが すこし はやく そだつように なったよ。</p>
+        <button class="plain" type="button" id="ok2">やったね！</button>`);
+      $('ok2').addEventListener('click', closeModal);
+    });
+  }
+
+  function anyVisiting() { return [S.sakura, S.tonsuke, S.shirousa, S.chausa].includes('visiting'); }
+  const RABBITS = {
+    shirousa: { name: 'しろうさ', draw: () => shirousa(),
+      say: 'わあ、りんごの きが いっぱい！<br>しろうさは くだものの おせわが だいすき。<br>ここで いっしょに くらしても いい？',
+      skill: '<b>かじゅえんの おせわ</b> が とくい。<br>りんごと ぶどうが すこし はやく みのるように なったよ。' },
+    chausa: { name: 'ちゃうさ', draw: () => chausa(),
+      say: 'あまい ぶどうの においが したよ！<br>ちゃうさは おかしづくりが とくいなの。<br>なかまに いれて くれる？',
+      skill: '<b>おかしづくり</b> が とくい。<br>にゃんケーキで ケーキが はやく やけるように なったよ。' },
+  };
+  function showRabbitVisit(key) {
+    const r = RABBITS[key];
+    openModal(`<h2>だれか きたよ！</h2>
+      <svg class="portrait" viewBox="-26 -36 52 58" aria-hidden="true">${r.draw()}</svg>
+      <p class="say">「こんにちは、<b>${r.name}</b> だよ！<br>${r.say}」</p>
+      <button class="primary" type="button" id="welcomeR">いっしょに くらそう</button>`);
+    $('welcomeR').addEventListener('click', () => {
+      S[key] = 'friend'; save(); render();
+      openModal(`<h2>${r.name}が なかまに なった！</h2>
+        <svg class="portrait" viewBox="-26 -36 52 58" aria-hidden="true">${r.draw()}</svg>
+        <p>${r.name}は ${r.skill}</p>
+        <button class="plain" type="button" id="okR">やったね！</button>`);
+      $('okR').addEventListener('click', () => {
+        closeModal();
+        if (S.chausa === 'visiting') setTimeout(() => showRabbitVisit('chausa'), 400);
+      });
+    });
+  }
+
+  function showFriends() {
+    const card = (svg, vb, name, role) => `<div class="friend"><svg viewBox="${vb}" aria-hidden="true">${svg}</svg><b>${name}</b><span class="role">${role}</span></div>`;
+    const list = [
+      card(koke(), '-26 -24 52 44', 'コケ', 'くだものやさんの てんちょう'),
+      S.sakura === 'friend' ? card(sakura(), '-30 -29 60 52', 'さくら', 'おみせばん（いちご +1コイン）') : card(mystery(), '-26 -26 52 50', '？？？', `いちごを ${SAKURA_AFTER_SOLD}こ うると…`),
+      S.tonsuke === 'friend' ? card(tonsuke(), '-26 -22 52 42', 'とんすけ', 'はたけしごと（いちごが はやく そだつ）') : card(mystery(), '-26 -26 52 50', '？？？', `はたけが ${TONSUKE_AFTER_PLOTS}マスに なると…`),
+      S.shirousa === 'friend' ? card(shirousa(), '-26 -36 52 58', 'しろうさ', 'かじゅえんの おせわ（くだものが はやく みのる）') : card(mystery(), '-26 -26 52 50', '？？？', 'となりの とちを かうと…'),
+      S.chausa === 'friend' ? card(chausa(), '-26 -36 52 58', 'ちゃうさ', 'おかしづくり（ケーキが はやく やける）') : card(mystery(), '-26 -26 52 50', '？？？', 'ぶどうを しゅうかく すると…'),
+    ].join('');
+    openModal(`<h2>なかま</h2><div class="friend-list">${list}</div>
+      <p style="font-size:.85rem;color:var(--ink-soft)">うった いちご：${S.totalSold}こ</p>
+      <button class="plain" type="button" id="close">とじる</button>`);
+    $('close').addEventListener('click', closeModal);
+  }
+
+  // ---------- orders ----------
+  const canFill = (o) => o.want.every(([k, n]) => (S[k] || 0) >= n);
+  function makeOrder() {
+    const pool = ['stock', 'eggStock', 'appleStock', 'grapeStock', 'cakes'].filter(k => GOODS[k].on());
+    const qty = { stock: [3, 8], eggStock: [1, 3], appleStock: [2, 5], grapeStock: [1, 3], cakes: [1, 2] };
+    const n = pool.length > 1 && Math.random() < .5 ? 2 : 1;
+    const picks = [...pool].sort(() => Math.random() - .5).slice(0, n);
+    const want = picks.map(k => [k, qty[k][0] + Math.floor(Math.random() * (qty[k][1] - qty[k][0] + 1))]);
+    const value = want.reduce((t, [k, q]) => t + q * GOODS[k].unit(), 0);
+    const c = CUSTOMERS[Math.floor(Math.random() * CUSTOMERS.length)];
+    return { c: c.k, want, reward: Math.round(value * 1.5 / 5) * 5 + 5 };
+  }
+  function tickOrders() {
+    if (S.orders.length >= MAX_ORDERS || Date.now() < S.nextOrderAt) return false;
+    S.orders.push(makeOrder()); S.nextOrderAt = Date.now() + ORDER_MS;
+    return true;
+  }
+  function renderOrders() {
+    const box = $('orders');
+    const show = S.totalSold > 0 || S.orders.length > 0;
+    box.hidden = !show;
+    if (!show) return;
+    const waitText = `つぎの おきゃくさんまで あと ${fmt(S.nextOrderAt - Date.now())}`;
+    const sig = JSON.stringify(S.orders) + Object.keys(GOODS).map(k => S[k]).join();
+    if (sig === orderSig) { const w = $('orderWait'); if (w) w.textContent = waitText; return; }
+    orderSig = sig;
+    const cards = S.orders.map((o, i) => {
+      const who = CUSTOMERS.find(c => c.k === o.c);
+      const want = o.want.map(([k, n]) => `<span class="${(S[k] || 0) >= n ? '' : 'short'}"><svg viewBox="-12 -12 24 24" aria-hidden="true">${GOODS[k].icon}</svg>${Math.min(S[k] || 0, n)}/${n}</span>`).join('');
+      return `<div class="order"><svg class="face" viewBox="-20 -24 40 40" aria-hidden="true">${customerSvg(o.c)}</svg>
+        <div><div class="who">${who.name}</div><div class="want">${want}</div></div>
+        <div class="side"><span class="reward">+${o.reward}コイン</span>
+        <button class="give" type="button" data-give="${i}" ${canFill(o) ? '' : 'disabled'}>とどける</button>
+        <button class="skip" type="button" data-skip="${i}">ことわる</button></div></div>`;
+    }).join('');
+    const wait = S.orders.length < MAX_ORDERS ? `<div class="order-wait" id="orderWait">${waitText}</div>` : '';
+    box.innerHTML = `<h3>おきゃくさんの ちゅうもん</h3>${cards}${wait}`;
+  }
+  $('orders').addEventListener('click', (e) => {
+    const g = e.target.closest('[data-give]'), sk = e.target.closest('[data-skip]');
+    if (g) {
+      const o = S.orders[+g.dataset.give];
+      if (!o || !canFill(o)) return;
+      o.want.forEach(([k, n]) => { S[k] -= n; });
+      S.coins += o.reward; S.ordersDone += 1; qAdd('order', 1); S.orders.splice(+g.dataset.give, 1);
+      if (S.orders.length === MAX_ORDERS - 1) S.nextOrderAt = Math.max(S.nextOrderAt, Date.now() + ORDER_MS / 2);
+      const who = CUSTOMERS.find(c => c.k === o.c);
+      toast(`${who.name}「ありがとう！」 +${o.reward}コイン`); pop('coinChip'); save(); render();
+    } else if (sk) {
+      S.orders.splice(+sk.dataset.skip, 1);
+      S.nextOrderAt = Math.min(S.nextOrderAt, Date.now() + ORDER_MS); save(); render();
+    }
+  });
+
+  // ---------- decorations ----------
+  let mode = null; // { type: 'place', k } | { type: 'remove' }
+  function setMode(m) {
+    mode = m;
+    $('modebar').hidden = !m;
+    $('decos').classList.toggle('decos-remove', m?.type === 'remove');
+    $('decos').style.pointerEvents = m?.type === 'remove' ? 'auto' : 'none';
+    if (m?.type === 'place') $('modeText').textContent = `${DECOS.find(d => d.k === m.k).name}を おく ばしょを タップ（のこり ${S.decoInv[m.k] || 0}こ）`;
+    if (m?.type === 'remove') $('modeText').textContent = 'かたづける かざりを タップしてね';
+  }
+  $('modeEnd').addEventListener('click', () => setMode(null));
+  function svgPoint(e) {
+    const svg = $('scene'), pt = svg.createSVGPoint();
+    pt.x = e.clientX; pt.y = e.clientY;
+    return pt.matrixTransform(svg.getScreenCTM().inverse());
+  }
+  const landOk = (x) => x < 1080 || (x < 1440 && S.orchard.owned) || (x >= 1440 && S.pond.owned);
+  function placeAt(e) {
+    const { x, y } = svgPoint(e);
+    if (y < 24 || y > 630) { toast('もうすこし うちがわに おいてね'); return; }
+    if (!landOk(x)) { toast('まだ かっていない とちには おけないよ'); return; }
+    S.decos.push({ k: mode.k, x: Math.round(x), y: Math.round(y) }); qAdd('deco', 1);
+    S.decoInv[mode.k] -= 1; S.decoInv.__rev = (S.decoInv.__rev || 0) + 1;
+    save(); render();
+    if (S.decoInv[mode.k] > 0) setMode(mode); else { setMode(null); toast('かざったよ！'); }
+  }
+  function showDecoShop() {
+    const ss = nowSeason();
+    const where = ['はたけ', 'おみせ', 'おうち', 'かじゅえん', 'いけ'].map((n, i) => [n, S.decos.filter(d => Math.min(4, Math.floor(d.x / 360)) === i).length, i]).filter(([, c]) => c);
+    const items = DECOS.filter(d => !d.season || d.season === ss || (S.decoInv[d.k] || 0) > 0).map(d => `<div class="deco-item"><svg viewBox="-18 -18 36 34" aria-hidden="true">${decoSvg(d.k)}</svg>
+      <b>${d.name}</b><small>${d.season ? `${SEASON_NAME[d.season]}の げんてい ・ ` : ''}もっている：${S.decoInv[d.k] || 0}こ</small>
+      <div class="row"><button class="buy" type="button" data-buy="${d.k}" ${S.coins < d.price || (d.season && d.season !== ss) ? 'disabled' : ''}>かう ${d.price}</button>
+      <button class="put" type="button" data-put="${d.k}" ${(S.decoInv[d.k] || 0) > 0 ? '' : 'disabled'}>おく</button></div></div>`).join('');
+    openModal(`<h2>かざりつけ</h2><p class="note">いまは ${SEASON_NAME[ss]}。${SEASON_NAME[ss]}だけの かざりも あるよ</p><div class="deco-list" style="max-height:50vh;overflow-y:auto">${items}</div>
+      ${where.length ? `<p class="note">おいている かざり（タップで みにいく）</p><div class="chips">${where.map(([n, c, i]) => `<button type="button" data-where="${i}">${n} ${c}こ</button>`).join('')}</div>` : ''}
+      <button class="plain" type="button" id="tidy" ${S.decos.length ? '' : 'disabled'}>おいた かざりを かたづける</button>
+      <button class="plain" type="button" id="tidyAll" ${S.decos.length ? '' : 'disabled'}>ぜんぶ しまって おきなおす</button>
+      <button class="plain" type="button" id="close4">とじる</button>`);
+    $('close4').addEventListener('click', closeModal);
+    $('tidy').addEventListener('click', () => { closeModal(); setMode({ type: 'remove' }); });
+    $('tidyAll').addEventListener('click', () => {
+      S.decos.forEach(d => { S.decoInv[d.k] = (S.decoInv[d.k] || 0) + 1; });
+      S.decos = []; S.decoInv.__rev = (S.decoInv.__rev || 0) + 1; playWho = null; playIdx = -1;
+      save(); render(); showDecoShop(); toast('かざりを ぜんぶ しまったよ。「おく」で すきな ばしょへ');
+    });
+    $('modal').querySelectorAll('[data-where]').forEach(b => b.addEventListener('click', () => { closeModal(); $('scroller').scrollLeft = +b.dataset.where * $('scroller').clientWidth; }));
+    $('modal').querySelectorAll('[data-buy]').forEach(b => b.addEventListener('click', () => {
+      const d = DECOS.find(x => x.k === b.dataset.buy);
+      if (S.coins < d.price) return;
+      S.coins -= d.price; S.decoInv[d.k] = (S.decoInv[d.k] || 0) + 1; see('d_' + d.k); pop('coinChip'); save(); render(); showDecoShop();
+    }));
+    $('modal').querySelectorAll('[data-put]').forEach(b => b.addEventListener('click', () => { closeModal(); setMode({ type: 'place', k: b.dataset.put }); }));
+  }
+
+  // ---------- pond & fishing ----------
+  function tapPondLand() {
+    if (S.coins < POND_PRICE) { toast(`いけの とちは ${POND_PRICE}コイン。あと ${POND_PRICE - S.coins}コイン`); return; }
+    S.coins -= POND_PRICE; S.pond.owned = true; pop('coinChip'); save(); render();
+    toast('いけの ある とちを かったよ！いけを タップして つりを しよう');
+  }
+  let fishTimer = null, fishState = 'idle', fishRaf = 0, hooked = null, tries = 0, zoneAt = 0, fishPos = 0;
+  function pickFish() { let r = Math.random(); for (const f of FISH) { if (r < f.p) return f; r -= f.p; } return FISH[0]; }
+  function stopFish() { clearTimeout(fishTimer); cancelAnimationFrame(fishRaf); fishState = 'idle'; }
+  function showFishing() {
+    stopFish();
+    const shadows = [[40, 66, 1.6, 11], [150, 94, 1.2, 15], [100, 42, 1, 19]].map(([x, y, sc, d], i) => `<g class="swim" style="animation-duration:${d}s;animation-delay:-${i * 5}s"><use href="#fish" fill="#4f8fbf" opacity=".28" transform="translate(${x},${y}) scale(${sc})"/></g>`).join('');
+    openModal(`<div class="fishing"><h2>さかなつり</h2>
+      <svg viewBox="0 0 200 130" aria-hidden="true">
+        <rect width="200" height="130" fill="#9fd3ea"/>
+        <path d="M0,30 Q50,24 100,30 T200,30" stroke="#c4e6f4" stroke-width="3" fill="none"/>
+        <path d="M0,80 Q50,74 100,80 T200,80" stroke="#c4e6f4" stroke-width="3" fill="none"/>
+        ${shadows}
+        <path d="M200,0 L120,44" stroke="#6b564a" stroke-width="1" id="line" opacity="0"/>
+        <g id="bobber" opacity="0"><circle cx="120" cy="50" r="6" fill="#fff" stroke="#4a3b33" stroke-width="1.4"/><path d="M114,50 A6,6 0 0 1 126,50Z" fill="#ef5b6b"/></g>
+        <g id="gauge" opacity="0"><rect x="18" y="108" width="164" height="14" rx="7" fill="#fff" stroke="#4a3b33" stroke-width="1.4"/>
+          <rect id="zone" x="20" y="110" width="40" height="10" rx="5" fill="#9fdc8a"/>
+          <g id="marker"><path d="M0,107 L-5,100 H5Z" fill="#ef5b6b" stroke="#4a3b33" stroke-width="1" stroke-linejoin="round"/><rect x="-1.5" y="107" width="3" height="16" rx="1.5" fill="#ef5b6b" stroke="#4a3b33" stroke-width=".8"/></g></g>
+        <g id="catch"></g>
+      </svg>
+      <p id="fishMsg">えさ ${BAIT}コインで つりを するよ。<br>ウキが しずんだら「ひく！」、<br>ゲージの みどりで「いまだ！」</p>
+      <button class="primary" type="button" id="fishBtn">なげる（${BAIT}コイン）</button>
+      <button class="plain" type="button" id="close5">おわる</button></div>`);
+    $('close5').addEventListener('click', () => { stopFish(); closeModal(); });
+    $('fishBtn').addEventListener('click', fishAction);
+  }
+  function fishAction() {
+    const msg = $('fishMsg'), btn = $('fishBtn'), bob = $('bobber');
+    if (fishState === 'idle') {
+      if (S.coins < BAIT) { msg.textContent = 'コインが たりないよ'; return; }
+      S.coins -= BAIT; save(); render();
+      $('catch').innerHTML = ''; $('gauge').setAttribute('opacity', '0');
+      bob.setAttribute('opacity', '1'); $('line').setAttribute('opacity', '1'); bob.classList.remove('bite');
+      fishState = 'wait'; msg.textContent = 'ウキを みていてね…'; btn.textContent = 'ひく！';
+      fishTimer = setTimeout(() => {
+        hooked = pickFish(); fishState = 'bite'; bob.classList.add('bite');
+        msg.textContent = hooked.zone < .22 ? 'ぐぐっ！ おもいぞ… いまだ！' : 'いまだ！ ひいてる！';
+        fishTimer = setTimeout(() => { if (fishState === 'bite') endFish('にげられちゃった… もういちど！'); }, FAST ? 1500 : 1300);
+      }, 1500 + Math.random() * 2500);
+    } else if (fishState === 'wait') {
+      clearTimeout(fishTimer); endFish('はやすぎた… さかなが にげちゃった');
+    } else if (fishState === 'bite') {
+      clearTimeout(fishTimer); startReel();
+    } else if (fishState === 'reel') {
+      if (fishPos >= zoneAt - .01 && fishPos <= zoneAt + hooked.zone + .01) { stopFish(); landFish(hooked); }
+      else if (++tries < 2) msg.textContent = 'おしい！ もういちど みどりで「いまだ！」';
+      else { stopFish(); endFish(`あっ… ${hooked.zone < .22 ? 'おおものに' : 'さかなに'} にげられちゃった`); }
+    }
+  }
+  function startReel() {
+    fishState = 'reel'; tries = 0; fishPos = 0;
+    zoneAt = .08 + Math.random() * (.84 - hooked.zone);
+    $('zone').setAttribute('x', 20 + 160 * zoneAt); $('zone').setAttribute('width', 160 * hooked.zone);
+    $('gauge').setAttribute('opacity', '1'); $('bobber').classList.remove('bite');
+    $('fishMsg').textContent = 'みどりの ところで「いまだ！」'; $('fishBtn').textContent = 'いまだ！';
+    const t0 = performance.now(), m = $('marker');
+    const step = (now) => {
+      if (fishState !== 'reel') return;
+      fishPos = (1 - Math.cos((now - t0) / 1000 * hooked.speed * 2.2)) / 2;
+      m.setAttribute('transform', `translate(${20 + 160 * fishPos},0)`);
+      fishRaf = requestAnimationFrame(step);
+    };
+    fishRaf = requestAnimationFrame(step);
+    fishTimer = setTimeout(() => { if (fishState === 'reel') { stopFish(); endFish('ひっぱられて にげられちゃった…'); } }, 7000);
+  }
+  function landFish(f) {
+    let text;
+    if (f.price) {
+      const cm = f.cm[0] + Math.floor(Math.random() * (f.cm[1] - f.cm[0] + 1)), best = S.fishBest[f.k] || 0;
+      S[f.k] += 1; qAdd('fish', 1); if (cm > best) S.fishBest[f.k] = cm;
+      text = `${f.name}（${cm}cm）が つれた！` + (best && cm > best ? ' きろく こうしん！' : '');
+    } else if (f.treasure) {
+      const coins = 20 + Math.floor(Math.random() * 31), fr = FURN[Math.floor(Math.random() * FURN.length)];
+      S.coins += coins; S.furnInv[fr.k] = (S.furnInv[fr.k] || 0) + 1; see('f_' + fr.k); pop('coinChip');
+      text = `たからばこ！ ${coins}コインと「${fr.name}」が はいってた！`;
+    } else text = 'ながぐつが つれた… だれのかな？';
+    see(f.k); save(); render();
+    $('catch').innerHTML = fishIcon(f, 'translate(100,58) scale(4)');
+    endFish(text);
+  }
+  function endFish(text) {
+    fishState = 'idle';
+    if (!$('fishMsg')) return;
+    $('fishMsg').textContent = text;
+    $('bobber').setAttribute('opacity', '0'); $('line').setAttribute('opacity', '0'); $('bobber').classList.remove('bite');
+    $('gauge').setAttribute('opacity', '0');
+    $('fishBtn').textContent = `もういちど なげる（${BAIT}コイン）`;
+  }
+
+  // ---------- houses ----------
+  const DRAW = { koke: () => koke(), sakura: () => sakura(), tonsuke: () => tonsuke(), shirousa: () => shirousa(), chausa: () => chausa() };
+  function tapHome(key) {
+    const h = HOMES[key];
+    if (S.homes[key]) return showRoom(key);
+    if (S[key] !== 'friend') { toast('まだ だれも すんでいない とちだよ'); return; }
+    if (S.coins < h.price) { toast(`${h.name}の おうちは ${h.price}コイン。あと ${h.price - S.coins}コイン`); return; }
+    const R = ROOM[key];
+    S.coins -= h.price;
+    // a new house comes with a few things inside
+    S.homes[key] = { guests: [], items: key === 'sakura'
+      ? [{ k: 'sofa', x: 270, y: 184 }, { k: 'rug', x: 270, y: 204 }, { k: 'curtain', x: 200, y: 52 }]
+      : [{ k: 'bed', x: 66, y: 186 }, { k: 'curtain', x: R.w / 2, y: 52 }] };
+    pop('coinChip'); save(); render();
+    openModal(`<h2>${h.name}の おうちが できた！</h2>
+      <svg class="portrait" viewBox="-30 -36 60 60" aria-hidden="true">${DRAW[key]()}</svg>
+      <p class="say">${NAME[key]}「${HOME_THANKS[key]}」</p>
+      <button class="primary" type="button" id="goIn">なかに はいる</button>`);
+    $('goIn').addEventListener('click', () => showRoom(key));
+  }
+  let roomKey = null, roomMode = null;
+  function roomInner(key) {
+    const R = ROOM[key], H = S.homes[key];
+    let wp = '';
+    for (let y = 14, row = 0; y < WALL_H - 12; y += 24, row++) for (let x = 12 + (row % 2) * 14; x < R.w; x += 28) wp += `<circle cx="${x}" cy="${y}" r="2.2" fill="${R.paper}"/>`;
+    let planks = '';
+    for (let y = WALL_H + 18; y < R.h; y += 18) planks += `<path d="M0,${y} H${R.w}" stroke="#d6b386" stroke-width="1.2"/>`;
+    const base = `<rect width="${R.w}" height="${WALL_H}" fill="${R.wall}"/>${wp}<rect y="${WALL_H}" width="${R.w}" height="${R.h - WALL_H}" fill="#e8c9a0"/>${planks}
+      <rect y="${WALL_H - 6}" width="${R.w}" height="7" fill="#fff6e4" stroke="#c9a873" stroke-width="1"/>`;
+    const items = H.items.map((it, i) => ({ ...it, i, f: FURN.find(f => f.k === it.k) })).filter(it => it.f);
+    const z = (it) => it.f.under ? -2 : it.f.wall ? -1 : it.y;
+    // people sit on seats first, then stand around the room
+    const spots = [];
+    items.forEach(it => (it.f.seat || []).forEach(([dx, dy]) => spots.push([it.x + dx, it.y + dy, it.f.under ? it.y + dy + .5 : it.y + .5])));
+    [[.3, 22], [.52, 12], [.72, 26], [.88, 14], [.14, 12]].forEach(([fx, dy]) => spots.push([R.w * fx, R.h - dy, R.h - dy + .5]));
+    const people = [key, ...(key === 'sakura' ? H.guests || [] : [])];
+    const layers = items.map(it => ({ z: z(it), svg: `<g class="furn" data-f="${it.i}" transform="translate(${it.x},${it.y})">${furnSvg(it.k)}</g>` }));
+    people.forEach((who, n) => {
+      const [x, y, zz] = spots[n];
+      layers.push({ z: zz, svg: `<g class="tap" data-who="${who}" transform="translate(${x},${y - 16}) scale(.8)"><g class="${who === 'koke' || who === 'tonsuke' ? 'squish' : 'hop'}">${DRAW[who]()}</g></g>` });
+    });
+    return base + layers.sort((a, b) => a.z - b.z).map(l => l.svg).join('');
+  }
+  function drawRoom() { $('room').innerHTML = roomInner(roomKey); }
+  function roomSay(t) { const m = $('roomMsg'); if (m) m.textContent = t; }
+  function setRoomMode(m) {
+    roomMode = m;
+    $('room').classList.toggle('furn-rm', m?.type === 'remove');
+    $('tidyF').setAttribute('aria-pressed', m?.type === 'remove');
+    if (m?.type === 'place') roomSay(`${FURN.find(f => f.k === m.k).name}を おく ばしょを タップしてね（のこり ${S.furnInv[m.k] || 0}こ）`);
+    if (m?.type === 'remove') roomSay('かたづける かぐを タップしてね');
+  }
+  function showRoom(key) {
+    roomKey = key; roomMode = null;
+    const R = ROOM[key], H = S.homes[key];
+    openModal(`<h2>${NAME[key]}の おうち</h2>
+      <div class="room-wrap"><svg id="room" viewBox="0 0 ${R.w} ${R.h}" role="img" aria-label="${NAME[key]}の おへや"></svg></div>
+      <p class="note" id="roomMsg"></p>
+      <div class="room-btns"><button type="button" id="furnBtn">かぐを おく</button><button type="button" id="tidyF" aria-pressed="false">かたづける</button>${key === 'sakura' ? '<button type="button" id="inviteBtn">ともだちを よぶ</button>' : ''}</div>
+      <div id="roomPanel"></div>
+      <button class="plain" type="button" id="closeR">そとに でる</button>`, 'wide');
+    drawRoom();
+    roomSay(`${NAME[key]}「${ROOM_LINES[key][0]}」`);
+    $('room').addEventListener('click', roomClick);
+    $('furnBtn').addEventListener('click', () => { setRoomMode(null); showFurnPanel(); });
+    $('tidyF').addEventListener('click', () => {
+      $('roomPanel').innerHTML = '';
+      if (!H.items.length) { roomSay('まだ かぐが ないよ'); return; }
+      setRoomMode(roomMode?.type === 'remove' ? null : { type: 'remove' });
+      if (!roomMode) roomSay('かたづけ おわり！');
+    });
+    $('inviteBtn')?.addEventListener('click', () => { setRoomMode(null); showInvitePanel(); });
+    $('closeR').addEventListener('click', () => { roomKey = null; closeModal(); });
+  }
+  function roomClick(e) {
+    const H = S.homes[roomKey];
+    if (roomMode?.type === 'remove') {
+      const f = e.target.closest('[data-f]');
+      if (!f) { roomSay('かたづける かぐを タップしてね'); return; }
+      const [it] = H.items.splice(+f.dataset.f, 1);
+      S.furnInv[it.k] = (S.furnInv[it.k] || 0) + 1; save(); drawRoom();
+      if (!H.items.length) setRoomMode(null);
+      roomSay(`${FURN.find(x => x.k === it.k).name}を かたづけたよ`);
+      return;
+    }
+    if (roomMode?.type === 'place') {
+      const svg = $('room'), pt = svg.createSVGPoint(); pt.x = e.clientX; pt.y = e.clientY;
+      const p = pt.matrixTransform(svg.getScreenCTM().inverse()), R = ROOM[roomKey];
+      const k = roomMode.k;
+      H.items.push({ k, x: Math.round(Math.max(16, Math.min(R.w - 16, p.x))), y: Math.round(Math.max(20, Math.min(R.h - 3, p.y))) });
+      S.furnInv[k] -= 1; save(); drawRoom();
+      if (S.furnInv[k] > 0) setRoomMode(roomMode); else { setRoomMode(null); roomSay('おいたよ！ すてきな おへやに なってきたね'); }
+      return;
+    }
+    const w = e.target.closest('[data-who]');
+    if (w) { petTap(w); const L = ROOM_LINES[w.dataset.who]; roomSay(`${NAME[w.dataset.who]}「${L[Math.floor(Math.random() * L.length)]}」`); }
+  }
+  function showFurnPanel() {
+    const items = FURN.map(f => `<div class="deco-item"><svg viewBox="${furnVb(f)}" aria-hidden="true">${furnSvg(f.k)}</svg>
+      <b>${f.name}</b><small>もっている：${S.furnInv[f.k] || 0}こ</small>
+      <div class="row"><button class="buy" type="button" data-fbuy="${f.k}" ${S.coins < f.price ? 'disabled' : ''}>かう ${f.price}</button>
+      <button class="put" type="button" data-fput="${f.k}" ${(S.furnInv[f.k] || 0) > 0 ? '' : 'disabled'}>おく</button></div></div>`).join('');
+    $('roomPanel').innerHTML = `<p class="note">コイン：${S.coins}</p><div class="deco-list" style="max-height:34vh;overflow-y:auto">${items}</div>`;
+    $('roomPanel').querySelectorAll('[data-fbuy]').forEach(b => b.addEventListener('click', () => {
+      const f = FURN.find(x => x.k === b.dataset.fbuy);
+      if (S.coins < f.price) return;
+      S.coins -= f.price; S.furnInv[f.k] = (S.furnInv[f.k] || 0) + 1; see('f_' + f.k); pop('coinChip'); save(); render(); showFurnPanel();
+    }));
+    $('roomPanel').querySelectorAll('[data-fput]').forEach(b => b.addEventListener('click', () => { $('roomPanel').innerHTML = ''; setRoomMode({ type: 'place', k: b.dataset.fput }); }));
+  }
+  function showInvitePanel() {
+    const H = S.homes.sakura;
+    H.guests = H.guests || [];
+    const can = ['koke', 'tonsuke', 'shirousa', 'chausa'].filter(k => k === 'koke' || S[k] === 'friend');
+    $('roomPanel').innerHTML = `<p class="note">だれを よぶ？（もういちど おすと おうちに かえるよ）</p><div class="chips">${can.map(k => `<button type="button" data-inv="${k}" aria-pressed="${H.guests.includes(k)}"><svg viewBox="-26 -36 52 58" aria-hidden="true">${DRAW[k]()}</svg>${NAME[k]}</button>`).join('')}</div>`;
+    $('roomPanel').querySelectorAll('[data-inv]').forEach(b => b.addEventListener('click', () => {
+      const k = b.dataset.inv, i = H.guests.indexOf(k);
+      if (i >= 0) { H.guests.splice(i, 1); roomSay(`${NAME[k]}は かえって いったよ。またね！`); }
+      else { H.guests.push(k); roomSay(`${NAME[k]}が あそびに きたよ！「${ROOM_LINES[k][0]}」`); }
+      save(); drawRoom(); render(); showInvitePanel();
+    }));
+  }
+
+  // ---------- book ----------
+  function showBook(tab = 'friends') {
+    const card = (svg, vb, name, role, known = true) => `<div class="friend ${known ? '' : 'unknown'}"><svg viewBox="${vb}" aria-hidden="true">${svg}</svg><b>${known ? name : '？？？'}</b><span class="role">${known ? role : 'まだ みつけて いないよ'}</span></div>`;
+    let body = '';
+    if (tab === 'friends') {
+      const fr = [
+        [koke(), '-26 -24 52 44', 'コケ', 'くだものやさんの てんちょう', true],
+        [sakura(), '-30 -29 60 52', 'さくら', 'おみせばん（いちご +1コイン）', S.sakura === 'friend'],
+        [tonsuke(), '-26 -22 52 42', 'とんすけ', 'はたけしごと（いちごが はやく そだつ）', S.tonsuke === 'friend'],
+        [shirousa(), '-26 -36 52 58', 'しろうさ', 'かじゅえんの おせわ（くだものが はやく みのる）', S.shirousa === 'friend'],
+        [chausa(), '-26 -36 52 58', 'ちゃうさ', 'おかしづくり（ケーキが はやく やける）', S.chausa === 'friend'],
+      ];
+      body = fr.map(f => card(...f)).join('');
+    } else if (tab === 'food') {
+      body = ['stock', 'eggStock', 'appleStock', 'grapeStock', 'cakes'].map(k => card(GOODS[k].icon, '-12 -12 24 24', GOODS[k].name, `${GOODS[k].unit()}コインで うれる`, !!S.seen[k])).join('');
+    } else if (tab === 'fish') {
+      body = FISH.map(f => card(fishIcon(f, 'scale(1.1)'), '-12 -12 24 24', f.name,
+        f.price ? `${f.price}コイン${S.fishBest[f.k] ? `・さいだい ${S.fishBest[f.k]}cm` : ''}` : f.treasure ? 'コインと かぐが はいってる' : 'つりで みつかる ふしぎな もの', !!S.seen[f.k])).join('');
+    } else if (tab === 'furn') {
+      body = FURN.map(f => card(furnSvg(f.k), furnVb(f), f.name, `${f.price}コイン`, !!S.seen['f_' + f.k])).join('');
+    } else {
+      body = DECOS.map(d => card(decoSvg(d.k), '-18 -18 36 34', d.name, `${d.price}コイン`, !!S.seen['d_' + d.k])).join('');
+    }
+    const count = (S.sakura === 'friend') + (S.tonsuke === 'friend') + (S.shirousa === 'friend') + (S.chausa === 'friend') + 1
+      + Object.keys(S.seen).length;
+    const total = 5 + 5 + FISH.length + DECOS.length + FURN.length;
+    const tabs = [['friends', 'なかま'], ['food', 'たべもの'], ['fish', 'さかな'], ['deco', 'かざり'], ['furn', 'かぐ']]
+      .map(([k, n]) => `<button type="button" data-tab="${k}" aria-pressed="${k === tab}">${n}</button>`).join('');
+    openModal(`<h2>ずかん</h2><div class="tabs">${tabs}</div><div class="book-grid">${body}</div>
+      <p class="note">あつめた かず：${count} / ${total}　・　とどけた ちゅうもん：${S.ordersDone}かい　・　うった いちご：${S.totalSold}こ</p>
+      <button class="plain" type="button" id="close6">とじる</button>`);
+    $('close6').addEventListener('click', closeModal);
+    $('modal').querySelectorAll('[data-tab]').forEach(b => b.addEventListener('click', () => showBook(b.dataset.tab)));
+  }
+
+  function confirmReset() {
+    openModal(`<h2>はじめから あそぶ？</h2><p>コインも はたけも おみせも なかまも かざりも、さいしょに もどるよ。</p>
+      <button class="primary" type="button" id="yes">はじめから あそぶ</button>
+      <button class="plain" type="button" id="no">やめる</button>`);
+    $('yes').addEventListener('click', () => { S = fresh(); save(); render(); closeModal(); toast('あたらしい ぼくじょうの はじまり！'); });
+    $('no').addEventListener('click', closeModal);
+  }
+
+  // ---------- little reactions ----------
+  const EMOTE = {
+    heart: '<path d="M0,-3 C-2,-6.5 -7,-5.5 -7,-2 C-7,1.5 -2.5,4 0,6 C2.5,4 7,1.5 7,-2 C7,-5.5 2,-6.5 0,-3Z" fill="#ff8fab" stroke="#c4507a" stroke-width="1"/>',
+    note: '<text x="0" y="5" text-anchor="middle" font-size="15" font-weight="700" fill="#7cb8e0" stroke="#4a3b33" stroke-width=".5">♪</text>',
+    star: '<path d="M0,-7 l2,5 l5,2 l-5,2 l-2,5 l-2,-5 l-5,-2 l5,-2Z" fill="#fff6a8" stroke="#e0b84a" stroke-width=".8"/>',
+  };
+  function emote(el, kind) {
+    if (!el) return;
+    el.classList.remove('happy'); void el.getBoundingClientRect(); el.classList.add('happy');
+    const keys = Object.keys(EMOTE), g = document.createElementNS(NS, 'g');
+    g.setAttribute('class', 'emote'); g.setAttribute('transform', 'translate(17,-34)');
+    g.innerHTML = `<g class="emote-in">${EMOTE[kind || keys[Math.floor(Math.random() * keys.length)]]}</g>`;
+    el.appendChild(g);
+    clearTimeout(el._joy); el._joy = setTimeout(() => el.classList.remove('happy'), 1400);
+    setTimeout(() => g.remove(), 1800);
+  }
+  // now and then someone smiles on their own
+  function idleEmote() {
+    const room = document.querySelectorAll('#room [data-who]');
+    const pool = room.length && !$('modalBack').hidden ? room : $('modalBack').hidden ? document.querySelectorAll('#cast .tap') : [];
+    if (pool.length) emote(pool[Math.floor(Math.random() * pool.length)]);
+  }
+
+  function petTap(el) { emote(el, 'heart'); qAdd('pet', 1); save(); }
+
+  // ---------- きょうの おねがい (daily quests) ----------
+  function questGen() {
+    const pool = QUESTS.filter(q => q.on()).sort(() => Math.random() - .5).slice(0, 3);
+    const askers = ['koke', ...['sakura', 'tonsuke', 'shirousa', 'chausa'].filter(k => S[k] === 'friend')];
+    return pool.map(q => {
+      let n = q.n[0] + Math.floor(Math.random() * (q.n[1] - q.n[0] + 1));
+      if (q.step) n = Math.round(n / q.step) * q.step;
+      return { t: q.t, n, got: 0, claimed: false, who: askers[Math.floor(Math.random() * askers.length)], reward: Math.max(10, Math.round(q.r(n) / 5) * 5) };
+    });
+  }
+  function questDay() {
+    const d = new Date().toDateString();
+    if (!S.quest || S.quest.day !== d) { S.quest = { day: d, list: questGen(), bonus: false }; save(); }
+  }
+  function qAdd(t, n) {
+    questDay();
+    S.quest.list.forEach(q => { if (q.t === t && !q.claimed) q.got = Math.min(q.n, q.got + n); });
+  }
+  const questReady = () => !S.quest ? 0 : S.quest.list.filter(q => !q.claimed && q.got >= q.n).length + (S.quest.list.every(q => q.claimed) && !S.quest.bonus ? 1 : 0);
+  function gift() {
+    // a random decoration or piece of furniture
+    const pool = [...DECOS.filter(d => !d.season).map(d => ['d', d]), ...FURN.map(f => ['f', f])];
+    const [kind, it] = pool[Math.floor(Math.random() * pool.length)];
+    if (kind === 'd') { S.decoInv[it.k] = (S.decoInv[it.k] || 0) + 1; see('d_' + it.k); } else { S.furnInv[it.k] = (S.furnInv[it.k] || 0) + 1; see('f_' + it.k); }
+    return it.name + (kind === 'f' ? '（かぐ）' : '（かざり）');
+  }
+  function showQuests() {
+    questDay();
+    const Q = S.quest;
+    const rows = Q.list.map((q, i) => {
+      const def = QUESTS.find(x => x.t === q.t), pr = Math.min(1, q.got / q.n);
+      return `<div class="quest ${q.claimed ? 'done' : ''}"><svg class="face" viewBox="-26 -36 52 58" aria-hidden="true">${DRAW[q.who]()}</svg>
+        <div><small>${NAME[q.who]}の おねがい</small><b>${def.text(q.n)}</b><div class="bar"><i style="width:${pr * 100}%"></i></div><small>${q.got} / ${q.n}</small></div>
+        <div class="side"><span class="reward">+${q.reward}コイン</span>${q.claimed ? '<span class="ok">✓</span>' : `<button type="button" data-claim="${i}" ${q.got >= q.n ? '' : 'disabled'}>うけとる</button>`}</div></div>`;
+    }).join('');
+    const all = Q.list.every(q => q.claimed);
+    const bonus = `<div class="quest bonus ${Q.bonus ? 'done' : ''}"><svg class="face" viewBox="-12 -12 24 24" aria-hidden="true"><path d="M-9,-3 H9 V9 H-9Z" fill="#f6a5c0" stroke="#4a3b33" stroke-width="1.2"/><path d="M-10,-7 H10 V-3 H-10Z" fill="#fbe0e8" stroke="#4a3b33" stroke-width="1.2"/><path d="M0,-7 V9" stroke="#ffd45e" stroke-width="2.4"/><path d="M0,-7 C-4,-12 -8,-9 -4,-7 M0,-7 C4,-12 8,-9 4,-7" fill="none" stroke="#ffd45e" stroke-width="1.6"/></svg>
+      <div><small>ぜんぶ かなえたら</small><b>おまけの プレゼント</b><small>かざりか かぐ ＋50コイン</small></div>
+      <div class="side">${Q.bonus ? '<span class="ok">✓</span>' : `<button type="button" id="qBonus" ${all ? '' : 'disabled'}>あける</button>`}</div></div>`;
+    openModal(`<h2>きょうの おねがい</h2><div class="quest-list">${rows}${bonus}</div>
+      <p class="note">おねがいは まいにち かわるよ</p>
+      <button class="plain" type="button" id="closeQ">とじる</button>`);
+    $('closeQ').addEventListener('click', closeModal);
+    $('modal').querySelectorAll('[data-claim]').forEach(b => b.addEventListener('click', () => {
+      const q = Q.list[+b.dataset.claim];
+      if (q.claimed || q.got < q.n) return;
+      q.claimed = true; S.coins += q.reward; pop('coinChip'); toast(`${NAME[q.who]}「ありがとう！」 +${q.reward}コイン`); save(); render(); showQuests();
+    }));
+    $('qBonus')?.addEventListener('click', () => {
+      if (Q.bonus || !Q.list.every(q => q.claimed)) return;
+      Q.bonus = true; S.coins += 50; const name = gift(); pop('coinChip'); save(); render();
+      openModal(`<h2>おまけの プレゼント！</h2><p>「${name}」と 50コイン が はいってたよ。<br>また あしたも おねがいを きいてね</p><button class="plain" type="button" id="okQ">やったね！</button>`);
+      $('okQ').addEventListener('click', closeModal);
+    });
+  }
+
+  // ---------- れっしゃ (train) ----------
+  function tickTrain() {
+    if (!S.coop.owned || S.train.cars || Date.now() < S.train.next) return false;
+    const pool = ['stock', 'eggStock', 'appleStock', 'grapeStock', 'cakes', 'fishS'].filter(k => GOODS[k].on());
+    const qty = { stock: [6, 12], eggStock: [3, 6], appleStock: [4, 8], grapeStock: [3, 6], cakes: [2, 3], fishS: [2, 4] };
+    S.train.cars = [0, 1, 2].map(() => {
+      const k = pool[Math.floor(Math.random() * pool.length)], n = qty[k][0] + Math.floor(Math.random() * (qty[k][1] - qty[k][0] + 1));
+      return { k, n, done: false, reward: Math.round(n * GOODS[k].unit() * 1.6 / 5) * 5 + 5 };
+    });
+    return true;
+  }
+  function departTrain(full) {
+    S.train = { cars: null, next: Date.now() + TRAIN_MS };
+    if (!full) { save(); render(); closeModal(); toast('れっしゃが しゅっぱつしたよ。またね！'); return; }
+    S.coins += 60; const name = gift(); pop('coinChip'); save(); render();
+    openModal(`<h2>しゅっぱーつ！</h2><svg class="portrait" viewBox="-6 -20 76 82" aria-hidden="true">${locoSvg()}</svg>
+      <p>ぜんぶ つめたね！ おれいに<br>「${name}」と 60コイン を もらったよ</p>
+      <button class="plain" type="button" id="okT">やったね！</button>`);
+    $('okT').addEventListener('click', closeModal);
+  }
+  function showTrain() {
+    if (!S.coop.owned) { toast('にわとりごやを たてると れっしゃが くるよ'); return; }
+    const cars = S.train.cars;
+    if (!cars) {
+      openModal(`<h2>ねこうさえき</h2><svg class="portrait" viewBox="-6 -20 76 82" aria-hidden="true">${locoSvg()}</svg>
+        <p>つぎの れっしゃまで あと ${fmt(S.train.next - Date.now())}</p>
+        <p class="note">れっしゃに たのまれた ものを つむと コインが もらえるよ。ぜんぶ つむと おみやげつき！</p>
+        <button class="plain" type="button" id="closeT">とじる</button>`);
+      $('closeT').addEventListener('click', closeModal);
+      return;
+    }
+    const rows = cars.map((c, i) => `<div class="quest ${c.done ? 'done' : ''}"><svg class="face" viewBox="-12 -12 24 24" aria-hidden="true">${GOODS[c.k].icon}</svg>
+      <div><small>${i + 1}りょうめ</small><b>${GOODS[c.k].name} ${c.n}こ</b><small>もっている：${S[c.k] || 0}こ</small></div>
+      <div class="side"><span class="reward">+${c.reward}コイン</span>${c.done ? '<span class="ok">✓</span>' : `<button type="button" data-load="${i}" ${(S[c.k] || 0) >= c.n ? '' : 'disabled'}>つむ</button>`}</div></div>`).join('');
+    const some = cars.some(c => c.done);
+    openModal(`<h2>れっしゃが きたよ！</h2><div class="quest-list">${rows}</div>
+      <p class="note">ぜんぶ つむと おみやげ（かざりか かぐ）が もらえるよ</p>
+      <button class="plain" type="button" id="sendT">${some ? 'ここまでで しゅっぱつ' : 'こんかいは みおくる'}</button>
+      <button class="plain" type="button" id="closeT">とじる</button>`);
+    $('closeT').addEventListener('click', closeModal);
+    $('sendT').addEventListener('click', () => departTrain(false));
+    $('modal').querySelectorAll('[data-load]').forEach(b => b.addEventListener('click', () => {
+      const c = cars[+b.dataset.load];
+      if (c.done || (S[c.k] || 0) < c.n) return;
+      S[c.k] -= c.n; c.done = true; S.coins += c.reward; qAdd('train', 1); pop('coinChip'); toast(`つんだよ！ +${c.reward}コイン`);
+      if (cars.every(x => x.done)) return departTrain(true);
+      save(); render(); showTrain();
+    }));
+  }
+
+  // ---------- wiring ----------
+  function activate(target) {
+    const plot = target.closest('[data-i]');
+    if (plot) return tapPlot(+plot.dataset.i);
+    if (target.closest('#shop')) return sellButton();
+    if (target.closest('#coopTap')) return tapCoop();
+    if (target.closest('#landTap')) return tapLand();
+    const tree = target.closest('[data-tree]');
+    if (tree) return tapTree(tree.dataset.tree);
+    if (target.closest('#pondLand')) return tapPondLand();
+    if (target.closest('#pondTap')) return showFishing();
+    if (target.closest('#bakeryTap')) return tapBakery();
+    if (target.closest('#trainTap') || target.closest('#stationTap')) return showTrain();
+    const home = target.closest('[data-home]');
+    if (home) return tapHome(home.dataset.home);
+    if (target.closest('#shiroTap')) {
+      petTap(target.closest('#shiroTap'));
+      const lines = ['りんご、つやつやだね', 'きょうも かじゅえんは げんき！', 'ちゃうさと いっしょに おさんぽしたいな'];
+      return toast('しろうさ「' + lines[Math.floor(Math.random() * lines.length)] + '」');
+    }
+    if (target.closest('#chaTap')) {
+      petTap(target.closest('#chaTap'));
+      const lines = ['ケーキの においって しあわせ〜', 'つぎは ぶどうの おかしも つくりたいな', 'しろうさ、まってよ〜'];
+      return toast('ちゃうさ「' + lines[Math.floor(Math.random() * lines.length)] + '」');
+    }
+    if (target.closest('#tonTap')) {
+      petTap(target.closest('#tonTap'));
+      const lines = ['ぶひっ、きょうも いい てんき！', 'はたけしごとは まかせて', 'いちご、ひとつ たべても いい？'];
+      return toast('とんすけ「' + lines[Math.floor(Math.random() * lines.length)] + '」');
+    }
+    if (target.closest('#kokeTap')) {
+      petTap(target.closest('#kokeTap'));
+      const lines = ['ぴよっ！ きょうも いい てんき', 'いちご、たくさん そだてようね', 'みんなと いると たのしいな'];
+      return toast('コケ「' + lines[Math.floor(Math.random() * lines.length)] + '」');
+    }
+    if (target.closest('#sakuraTap')) {
+      petTap(target.closest('#sakuraTap'));
+      const lines = ['いちご、おいしそう！', 'おみせばんは まかせてね', 'つぎは りんごも そだてたいな', 'コケ、きょうも がんばってるね'];
+      toast('さくら「' + lines[Math.floor(Math.random() * lines.length)] + '」');
+    }
+  }
+  $('scene').addEventListener('click', (e) => {
+    if (mode?.type === 'place') return placeAt(e);
+    if (mode?.type === 'remove') {
+      const d = e.target.closest('[data-deco]');
+      if (!d) { toast('かざりを タップしてね'); return; }
+      const [it] = S.decos.splice(+d.dataset.deco, 1);
+      playWho = null; playIdx = -1;
+      S.decoInv[it.k] = (S.decoInv[it.k] || 0) + 1; S.decoInv.__rev = (S.decoInv.__rev || 0) + 1;
+      save(); render(); toast('かたづけたよ'); if (!S.decos.length) setMode(null);
+      return;
+    }
+    activate(e.target);
+  });
+  $('scene').addEventListener('keydown', (e) => {
+    if (e.key !== 'Enter' && e.key !== ' ') return;
+    e.preventDefault();
+    const idx = e.target.closest('[data-i]')?.dataset.i;
+    activate(e.target);
+    if (idx != null) document.querySelector(`[data-i="${idx}"]`)?.focus();
+  });
+  $('sell').addEventListener('click', sellButton);
+  $('questBtn').addEventListener('click', showQuests);
+  $('trainBtn').addEventListener('click', showTrain);
+  $('orderBtn').addEventListener('click', () => {
+    if ($('orders').hidden) { toast('いちごを うると おきゃくさんが くるよ'); return; }
+    $('orders').scrollIntoView({ behavior: 'smooth', block: 'center' });
+  });
+  const sc = $('scroller');
+  const panState = () => {
+    const atEnd = sc.scrollLeft > sc.scrollWidth - sc.clientWidth - 8;
+    $('panL').hidden = sc.scrollLeft < 8; $('panR').hidden = atEnd;
+    const cur = Math.round(sc.scrollLeft / sc.clientWidth);
+    document.querySelectorAll('#mapnav [data-go]').forEach(b => b.setAttribute('aria-current', +b.dataset.go === cur));
+    $('panR').classList.toggle('nudge', (!S.orchard.owned && S.coins >= LAND_PRICE) || (S.orchard.owned && !S.pond.owned && S.coins >= POND_PRICE));
+  };
+  $('panR').addEventListener('click', () => { sc.scrollLeft += sc.clientWidth; });
+  $('panL').addEventListener('click', () => { sc.scrollLeft -= sc.clientWidth; });
+  $('mapnav').addEventListener('click', (e) => { const b = e.target.closest('[data-go]'); if (b) sc.scrollLeft = +b.dataset.go * sc.clientWidth; });
+  sc.addEventListener('scroll', panState, { passive: true });
+  window.addEventListener('resize', panState);
+  $('friends').addEventListener('click', () => showBook());
+  $('decoBtn').addEventListener('click', showDecoShop);
+  $('reset').addEventListener('click', confirmReset);
+
+  // re-render each second so growth and timers advance; keep focus on the same plot
+  let idleN = 0;
+  setInterval(() => {
+    if (++idleN % 6 === 0) idleEmote();
+    const idx = document.activeElement?.closest?.('[data-i]')?.dataset.i;
+    if (tickEggs() | tickOrders() | tickTrain()) save();
+    render(); panState();
+    if (idx != null) document.querySelector(`[data-i="${idx}"]`)?.focus();
+  }, 1000);
+
+  if (tickEggs() | tickOrders() | tickTrain()) save();
+  $('decos').style.pointerEvents = 'none';
+  $('logoKoke').innerHTML = `<g class="squish">${koke()}</g>`;
+  render(); panState();
+  if (S.sakura === 'visiting') setTimeout(showVisit, 600);
+  else if (S.tonsuke === 'visiting') setTimeout(showTonVisit, 600);
+  else if (S.shirousa === 'visiting') setTimeout(() => showRabbitVisit('shirousa'), 600);
+  else if (S.chausa === 'visiting') setTimeout(() => showRabbitVisit('chausa'), 600);
+  const ripe = S.plots.filter(p => p.open && progress(p) >= 1).length;
+  if (ripe && S.totalSold + S.stock > 0) toast(`おかえり！いちごが ${ripe}マス みのっているよ`);
+  else if (!S.totalSold && S.plots.every(p => p.at == null)) toast('ようこそ、ねこうさひろばへ！ コケと いっしょに はじめよう');
+})();
+</script>

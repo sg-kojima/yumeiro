@@ -1,5 +1,5 @@
 // オフライン用: 一度ひらいたら ぜんぶ キャッシュして ネットなしでも あそべる
-const CACHE = 'yumeiro-v20';
+const CACHE = 'yumeiro-v21';
 const FILES = ['./', 'index.html', 'style.css', 'charset.js', 'icons.js', 'chars.js', 'mypics.js', 'buildings.js', 'field.js', 'app.js', 'english.js', 'catch.js', 'fishing.js', 'room.js', 'kanji.js', 'kanjidig.js', 'merge.js', 'juice.js', 'parking.js', 'manifest.json', 'icons/icon-180.png', 'icons/icon-192.png', 'icons/icon-512.png'];
 
 self.addEventListener('install', (e) => {
@@ -16,6 +16,6 @@ self.addEventListener('fetch', (e) => {
       const copy = res.clone();
       caches.open(CACHE).then((c) => c.put(e.request, copy));
       return res;
-    }).catch(() => caches.match(e.request, { ignoreSearch: true }).then((r) => r || caches.match('index.html')))
+    }).catch(() => caches.match(e.request, { ignoreSearch: true }).then((r) => r || caches.match(e.request.url.includes('/nekousa-hiroba/') ? 'nekousa-hiroba/index.html' : 'index.html')))
   );
 });
