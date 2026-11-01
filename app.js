@@ -130,7 +130,7 @@ function bumpWallet() {
 
 function setArea(area) {
   document.body.dataset.area = area;
-  const colors = { park: '#e3f6d6', field: '#dff5d8', home: '#efe6ff', patisserie: '#fde4ef', shop: '#fff1c9', settings: '#eef2f6', start: '#efe6ff', work: '#fff3d1', pond: '#dff3ff', kanji: '#e8f0ff' };
+  const colors = { park: '#e3f6d6', field: '#dff5d8', home: '#efe6ff', patisserie: '#fde4ef', shop: '#fff1c9', settings: '#eef2f6', start: '#efe6ff', work: '#fff3d1', pond: '#dff3ff', kanji: '#e8f0ff', sato: '#ffeef4' };
   $('meta[name="theme-color"]').setAttribute('content', colors[area] || '#fde4ef');
 }
 
@@ -210,8 +210,9 @@ const PLACES = {
   home:       { name: 'おうち',               land: [21, 89], port: [27, 55] },
   work:       { name: 'バイト＆おしゃべり',   land: [79, 89], port: [73, 55] },
   library:    { name: 'かんじの としょかん',   land: [50, 95], port: [27, 93] },
+  sato:       { name: 'さくらの さと',         land: [94, 70], port: [50, 44] },
 };
-const SIGN_ICON = { patisserie: 'cake', shop: 'bag', park: 'flower2', home: 'heart', work: 'star', library: 'books' };
+const SIGN_ICON = { patisserie: 'cake', shop: 'bag', park: 'flower2', home: 'heart', work: 'star', library: 'books', sato: 'sakura' };
 const PLAZA = { land: [50, 64], port: [50, 72] };
 // ワールドの おおきさ（がめんの なんばいか）と さいていの px
 const WORLD = { land: { kx: 1.6, ky: 1.5, minW: 1100, minH: 700 }, port: { kx: 1.6, ky: 1.5, minW: 580, minH: 1000 } };
@@ -375,6 +376,7 @@ function screenField(msg) {
         else if (id === 'park') screenPark();
         else if (id === 'work') screenWork();
         else if (id === 'library') screenKanji();
+        else if (id === 'sato') screenSato();
         else screenHome();
       }, 380);
     });
@@ -1374,7 +1376,7 @@ const coinHTML = (c) => `<span class="coin ${c.cls}">${c.label}</span>`;
 function screenShop() {
   setArea('shop');
   const tabs = { food: '🍙 ごはん', wear: '🎀 ふく', room: '🛋️ かぐ' };
-  const list = ITEMS.filter(i => i.cat === shopTab);
+  const list = ITEMS.filter(i => i.cat === shopTab && !i.hidden);
   $('#app').innerHTML = `
     <div class="screen shop">
       <header class="bar">
@@ -1636,7 +1638,8 @@ document.addEventListener('gesturestart', (e) => e.preventDefault());
 Promise.race([
   typeof loadMyPics === 'function' ? loadMyPics().catch(() => {}) : Promise.resolve(),
   new Promise(r => setTimeout(r, 1500)),
-]).then(() => {
+]).then(() => new Promise(r => (document.readyState === 'loading' ? addEventListener('DOMContentLoaded', r) : r()))).then(() => {
+  // ぜんぶの script（sato.js など）を よみこんでから えがく
   applyCharset();
   S.partner ? screenField() : screenStart();
 });
