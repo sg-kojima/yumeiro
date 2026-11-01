@@ -288,5 +288,5 @@ function parkSVG() {
 }
 
 function buildingSVG(id) {
-  return ({ patisserie: patisserieSVG, shop: shopSVG, park: parkSVG, home: homeSVG, work: workSVG, library: librarySVG }[id] || patisserieSVG)();
+  return ({ patisserie: patisserieSVG, shop: shopSVG, park: parkSVG, home: homeSVG, work: workSVG, library: librarySVG, sato: () => satoGateSVG() }[id] || patisserieSVG)();
 }
