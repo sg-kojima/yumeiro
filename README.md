@@ -83,3 +83,8 @@ HTML / CSS / JavaScript だけで できていて、ビルドは いりません
 - ゆめいろとは べつの URL で ひらけます。ゆめいろの URL のうしろに `nekousa-hiroba/` を つけるだけ（れい: `https://〇〇.netlify.app/nekousa-hiroba/`）。
 - セーブは その端末の ブラウザ（localStorage `nekousa-hiroba-v1`）。ゆめいろの データとは まざりません。
 - オフラインでも、いちど ひらいていれば `sw.js` の キャッシュで あそべます。
+
+## もちハムのおうち（べつの ゲーム）
+- `mochiham/index.html` 1まいだけで うごく ハムスターの おせわゲーム（3D・Three.js を jsDelivr から よむ）。マンション「ひまわりハイツ」で もちと おともだち（きなこ・ゆき・ごま）が くらす。
+- ゆめいろの URL のうしろに `mochiham/` を つけて ひらく（れい: `https://〇〇.netlify.app/mochiham/`）。ホーム画面に ついかすると アプリみたいに ひらける。
+- セーブは その端末の ブラウザ（localStorage `mochiham-v1`）。ゆめいろの データとは まざりません。
