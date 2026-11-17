@@ -1,5 +1,5 @@
 // オフライン用: 一度ひらいたら ぜんぶ キャッシュして ネットなしでも あそべる
-const CACHE = 'yumeiro-v24';
+const CACHE = 'yumeiro-v25';
 const FILES = ['./', 'index.html', 'style.css', 'charset.js', 'icons.js', 'chars.js', 'mypics.js', 'buildings.js', 'field.js', 'app.js', 'english.js', 'catch.js', 'fishing.js', 'room.js', 'kanji.js', 'kanjidig.js', 'merge.js', 'juice.js', 'parking.js', 'sato.js', 'manifest.json', 'icons/icon-180.png', 'icons/icon-192.png', 'icons/icon-512.png'];
 
 self.addEventListener('install', (e) => {
